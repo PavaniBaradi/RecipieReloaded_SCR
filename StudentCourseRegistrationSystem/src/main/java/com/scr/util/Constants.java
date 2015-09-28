@@ -12,4 +12,8 @@ public class Constants {
 	public static final String EMAIL = "EMAIL";
 	public static final String SUCCESS = "success";
 	public static final String FAILURE = "failure";
+	public static final String START_DATE = "START_DATE";
+	public static final String END_DATE = "END_DATE";
+	public static final String START_TIME = "START_TIME";
+	public static final String END_TIME = "END_TIME";
 }

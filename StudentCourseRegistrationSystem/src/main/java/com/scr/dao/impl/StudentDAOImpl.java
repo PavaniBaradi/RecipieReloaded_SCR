@@ -154,6 +154,7 @@ public class StudentDAOImpl implements StudentsDAO{
 			preparedStatement.setString(++index, studentVO.getLastName());
 			preparedStatement.setString(++index, studentVO.getEmailId());
 			preparedStatement.setString(++index, studentVO.getPassword());
+			preparedStatement.setInt(++index, studentVO.getStudentId());
 			System.out.println("Updating student using DDL statement "+preparedStatement.toString());
 
 			//execute the insert statement
