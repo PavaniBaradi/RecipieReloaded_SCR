@@ -22,8 +22,8 @@ public class StudentDAOImplTest {
 
 
 	@Test(dataProvider="createStudent_dp", enabled=true)
-	public void createStudent(String firstName, String lastName, String emailId, String password, String expectedMessage) {
-		StudentVO studentVO = new StudentVO(0, firstName, lastName, emailId, password);
+	public void createStudent(String firstName, String lastName, String emailId, String password,  String expectedMessage) {
+		StudentVO studentVO = new StudentVO(0, firstName, lastName, emailId, password,null);
 		String actualMessage = studentDAOObj.createStudent(studentVO);
 		Assert.assertEquals(actualMessage, expectedMessage);
 	}
@@ -40,7 +40,7 @@ public class StudentDAOImplTest {
 
 	@Test(dataProvider="deleteStudent_dp",enabled=false)
 	public void deleteStudent(String emailId, String expectedMessage) {
-		StudentVO studentVO = new StudentVO(0, null, null, emailId, null);
+		StudentVO studentVO = new StudentVO(0, null, null, emailId, null,null);
 		String actualMessage = studentDAOObj.deleteStudent(studentVO);
 		Assert.assertEquals(actualMessage, expectedMessage);
 	}
@@ -138,7 +138,7 @@ public class StudentDAOImplTest {
 
 	@Test(dataProvider="updateStudent_dp",enabled=false)
 	public void updateStudent(int studentID, String firstName, String lastName, String emailId, String password, String expectedMessage) {
-		StudentVO studentVO = new StudentVO(studentID, firstName, lastName, emailId, password);
+		StudentVO studentVO = new StudentVO(studentID, firstName, lastName, emailId, password, null);
 		String actualMessage = studentDAOObj.updateStudent(studentVO);
 		Assert.assertEquals(actualMessage, expectedMessage);
 	}

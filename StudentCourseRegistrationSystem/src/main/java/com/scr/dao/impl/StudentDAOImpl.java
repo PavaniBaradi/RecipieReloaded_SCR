@@ -58,6 +58,7 @@ public class StudentDAOImpl implements StudentsDAO{
 			preparedStatement.setString(++index, studentVO.getLastName());
 			preparedStatement.setString(++index, studentVO.getEmailId());
 			preparedStatement.setString(++index, studentVO.getPassword());
+			preparedStatement.setString(++index, studentVO.getUserFlag());
 			System.out.println("Inserting student using DDL statement "+preparedStatement.toString());
 
 			//execute the insert statement
@@ -251,7 +252,7 @@ public class StudentDAOImpl implements StudentsDAO{
 			//execute the select query 
 			resultSet = preparedStatement.executeQuery();
 			while(resultSet.next()){
-				studentVO = new StudentVO(resultSet.getInt(Constants.STUDENT_ID), resultSet.getString(Constants.FIRST_NAME), resultSet.getString(Constants.LAST_NAME), resultSet.getString(Constants.PASSWORD), null);
+				studentVO = new StudentVO(resultSet.getInt(Constants.STUDENT_ID), resultSet.getString(Constants.FIRST_NAME), resultSet.getString(Constants.LAST_NAME), resultSet.getString(Constants.EMAIL), resultSet.getString(Constants.PASSWORD), resultSet.getString(Constants.USER_FLAG));
 				studentsList.add(studentVO);
 			}
 			statusMessage = Constants.SUCCESS;
@@ -282,7 +283,7 @@ public class StudentDAOImpl implements StudentsDAO{
 			resultSet = preparedStatement.executeQuery();
 
 			while (resultSet.next()) {
-				studentVO = new StudentVO(resultSet.getInt(Constants.STUDENT_ID), resultSet.getString(Constants.FIRST_NAME), resultSet.getString(Constants.LAST_NAME), resultSet.getString(Constants.PASSWORD), null);
+				studentVO = new StudentVO(resultSet.getInt(Constants.STUDENT_ID), resultSet.getString(Constants.FIRST_NAME), resultSet.getString(Constants.LAST_NAME), resultSet.getString(Constants.EMAIL), resultSet.getString(Constants.PASSWORD), resultSet.getString(Constants.USER_FLAG));
 			}
 
 		} catch (Exception exp) {
@@ -511,7 +512,7 @@ public class StudentDAOImpl implements StudentsDAO{
 			resultSet = preparedStatement.executeQuery();
 
 			while (resultSet.next()) {
-				studentVO = new StudentVO(resultSet.getInt(Constants.STUDENT_ID), resultSet.getString(Constants.FIRST_NAME), resultSet.getString(Constants.LAST_NAME), resultSet.getString(Constants.PASSWORD), null);
+				studentVO = new StudentVO(resultSet.getInt(Constants.STUDENT_ID), resultSet.getString(Constants.FIRST_NAME), resultSet.getString(Constants.LAST_NAME), resultSet.getString(Constants.EMAIL), resultSet.getString(Constants.PASSWORD),resultSet.getString(Constants.USER_FLAG));
 			}
 
 		} catch (Exception exp) {

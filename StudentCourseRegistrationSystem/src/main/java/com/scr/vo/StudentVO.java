@@ -11,6 +11,7 @@ public class StudentVO {
 	private String lastName ;
 	private String emailId ;
 	private String password ;
+	private String userFlag;
 	private List<CoursesVO> courseList;
 	
 	
@@ -20,13 +21,14 @@ public class StudentVO {
 	 * @param emailId
 	 * @param password
 	 */
-	public StudentVO(int studentID, String firstName, String lastName, String emailId, String password) {
+	public StudentVO(int studentID, String firstName, String lastName, String emailId, String password, String userFlag) {
 		super();
 		this.studentId = studentID;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.emailId = emailId;
 		this.password = password;
+		this.userFlag = userFlag;
 	}
 	/**
 	 * @return the studentId
@@ -88,6 +90,18 @@ public class StudentVO {
 	 */
 	public void setPassword(String password) {
 		this.password = password;
+	}
+	/**
+	 * @return the user_flag
+	 */
+	public String getUserFlag() {
+		return userFlag;
+	}
+	/**
+	 * @param user_flag the user_flag to set
+	 */
+	public void setUserFlag(String user_flag) {
+		this.userFlag = user_flag;
 	}
 	/**
 	 * @return the courseList

@@ -41,7 +41,7 @@ public class SCRMain {
 			email = scanner.next();
 			System.out.println("Password");
 			password = scanner.next();
-			studentVO = new StudentVO(0, firstName, lastName, email, password);
+			studentVO = new StudentVO(0, firstName, lastName, email, password, Constants.USER_STUDENT);
 			statusMessage = studentDAO.createStudent(studentVO);
 			if(statusMessage.equals(Constants.SUCCESS)){
 				System.out.println("Student registered succesfully");
@@ -64,8 +64,10 @@ public class SCRMain {
 			System.out.println("Password: ");
 			password = scanner.next();
 			studentVO = studentDAO.login(email, password);
-			if(studentVO!=null)
+			if(studentVO!=null && studentVO.getUserFlag().equals(Constants.USER_ADMIN))
 				System.out.println("Admin successfully logged in "+studentVO.toString());
+			else
+				System.out.println("Admin with userid "+email +" doesnot exist");
 		default:
 			break;
 		}

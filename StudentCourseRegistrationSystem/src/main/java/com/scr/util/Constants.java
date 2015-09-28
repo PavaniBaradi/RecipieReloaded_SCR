@@ -17,4 +17,7 @@ public class Constants {
 	public static final String END_DATE = "END_DATE";
 	public static final String START_TIME = "START_TIME";
 	public static final String END_TIME = "END_TIME";
+	public static final String USER_STUDENT="Student";
+	public static final String USER_ADMIN="Admin";
+	public static final String USER_FLAG ="user_flag";
 }
