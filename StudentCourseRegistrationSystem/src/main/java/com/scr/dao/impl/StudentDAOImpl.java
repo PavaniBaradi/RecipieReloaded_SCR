@@ -254,7 +254,7 @@ public class StudentDAOImpl implements StudentsDAO{
 			//execute the select query 
 			resultSet = preparedStatement.executeQuery();
 			while(resultSet.next()){
-				studentVO = new StudentVO(Integer.parseInt(resultSet.getString(1)), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), null);
+				studentVO = new StudentVO(resultSet.getInt(Constants.STUDENT_ID), resultSet.getString(Constants.FIRST_NAME), resultSet.getString(Constants.LAST_NAME), resultSet.getString(Constants.PASSWORD), null);
 				studentsList.add(studentVO);
 			}
 			statusMessage = Constants.SUCCESS;
@@ -272,7 +272,7 @@ public class StudentDAOImpl implements StudentsDAO{
 
 	/**
 	 * This method a student's details
-	 * @param studentVO
+	 * @param email - student's email
 	 * @return studentVO object 
 	 */
 	@Override
@@ -285,7 +285,7 @@ public class StudentDAOImpl implements StudentsDAO{
 			resultSet = preparedStatement.executeQuery();
 
 			while (resultSet.next()) {
-				studentVO = new StudentVO(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), null);
+				studentVO = new StudentVO(resultSet.getInt(Constants.STUDENT_ID), resultSet.getString(Constants.FIRST_NAME), resultSet.getString(Constants.LAST_NAME), resultSet.getString(Constants.PASSWORD), null);
 			}
 
 		} catch (Exception exp) {
@@ -347,11 +347,11 @@ public class StudentDAOImpl implements StudentsDAO{
 			resultSet = preparedStatement.executeQuery();
 			courseList = new ArrayList<CoursesVO>();
 			while (resultSet.next()) {
-				courseName = resultSet.getString(2);
-				startDate = resultSet.getDate(3);
-				endDate = resultSet.getDate(4);
-				startTime = resultSet.getTime(5);
-				endTime = resultSet.getTime(6);
+				courseName = resultSet.getString(Constants.COURSE_NAME);
+				startDate = resultSet.getDate(Constants.START_DATE);
+				endDate = resultSet.getDate(Constants.END_DATE);
+				startTime = resultSet.getTime(Constants.START_TIME);
+				endTime = resultSet.getTime(Constants.END_TIME);
 				scheduleVO = new ScheduleVO(startDate, endDate, startTime, endTime);
 				if(courseId == 0){
 					scheduleList = new ArrayList<ScheduleVO>();
@@ -365,7 +365,7 @@ public class StudentDAOImpl implements StudentsDAO{
 					courseList.add(courseVO);
 					scheduleList = new ArrayList<ScheduleVO>();
 
-					courseId = resultSet.getInt(1);
+					courseId = resultSet.getInt(Constants.COURSE_ID);
 					courseVO = new CoursesVO(courseId, courseName, 0, null,null,null,null);
 					scheduleList.add(scheduleVO);
 				}else{
@@ -494,6 +494,35 @@ public class StudentDAOImpl implements StudentsDAO{
 		}
 		System.out.println("statusMessage  " + statusMessage);
 		return statusMessage;
+	}
+
+
+	/**
+	 * This method validates the user with email and password
+	 * @param email - user's email
+	 * @param password - user's password
+	 * @return returns StudentVO object if student exists else returns null
+	 */
+	@Override
+	public StudentVO login(String email, String password) {
+		StudentVO studentVO =null;
+		try {
+			connection = DBConnectionManager.getConnection();
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("login"));
+			preparedStatement.setString(1, email);
+			preparedStatement.setString(2, password);
+			resultSet = preparedStatement.executeQuery();
+
+			while (resultSet.next()) {
+				studentVO = new StudentVO(resultSet.getInt(Constants.STUDENT_ID), resultSet.getString(Constants.FIRST_NAME), resultSet.getString(Constants.LAST_NAME), resultSet.getString(Constants.PASSWORD), null);
+			}
+
+		} catch (Exception exp) {
+			System.out.println("Error : " + exp);
+		} finally {
+			DBConnectionManager.close(null, preparedStatement, resultSet);
+		}
+		return studentVO;
 	}
 
 }

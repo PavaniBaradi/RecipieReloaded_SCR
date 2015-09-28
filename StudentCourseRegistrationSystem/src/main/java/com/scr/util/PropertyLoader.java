@@ -26,7 +26,7 @@ public abstract class PropertyLoader {
 
 		try {
 			dbProperties = new Properties();
-			FileInputStream inputStream = new FileInputStream("dbqueries.properties");
+			FileInputStream inputStream = new FileInputStream("/StudentCourseRegistrationSystem/src/main/resources/dbqueries.properties");
 			dbProperties.load(inputStream);
 			inputStream.close();
 		} catch (IOException e) {

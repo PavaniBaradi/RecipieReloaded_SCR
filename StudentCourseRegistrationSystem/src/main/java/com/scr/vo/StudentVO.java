@@ -105,4 +105,8 @@ public class StudentVO {
 	public void setCourseList(List<CoursesVO> courseList) {
 		this.courseList = courseList;
 	}
+	
+	public String toString(){
+		return "Student Name "+firstName +" "+lastName +" email "+emailId;
+	}
 }

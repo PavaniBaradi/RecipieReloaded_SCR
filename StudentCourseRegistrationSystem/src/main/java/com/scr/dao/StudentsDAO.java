@@ -51,6 +51,13 @@ public interface StudentsDAO {
 	 */
 	public StudentVO getStudentDetails(String email);
 	
+	/**
+	 * This method a student's details
+	 * @param studentVO
+	 * @return studentVO object 
+	 */
+	public StudentVO login(String email, String password);
+	
 	
 	/**
 	 * This method lists course details which are enrolled by a student
