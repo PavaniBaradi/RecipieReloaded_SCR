@@ -7,10 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-/**
- * @author pavanibaradi
- *
- */
+
 public abstract class PropertyLoader {
 
 	private static Properties dbProperties = null;
@@ -26,8 +23,9 @@ public abstract class PropertyLoader {
 
 		try {
 			dbProperties = new Properties();
-			FileInputStream inputStream = new FileInputStream("/StudentCourseRegistrationSystem/src/main/resources/dbqueries.properties");
+			FileInputStream inputStream = new FileInputStream("dbqueries.properties");
 			dbProperties.load(inputStream);
+			System.out.println("db queries properties loaded");
 			inputStream.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -48,6 +46,7 @@ public abstract class PropertyLoader {
 			confProperties = new Properties();
 			FileInputStream inputStream = new FileInputStream("conf.properties");
 			confProperties.load(inputStream);
+			System.out.println("conf properties loaded");
 			inputStream.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

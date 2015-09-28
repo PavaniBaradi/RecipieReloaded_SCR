@@ -21,7 +21,7 @@ public class StudentDAOImplTest {
 	}
 
 
-	@Test(dataProvider="createStudent_dp", enabled=false)
+	@Test(dataProvider="createStudent_dp", enabled=true)
 	public void createStudent(String firstName, String lastName, String emailId, String password, String expectedMessage) {
 		StudentVO studentVO = new StudentVO(0, firstName, lastName, emailId, password);
 		String actualMessage = studentDAOObj.createStudent(studentVO);

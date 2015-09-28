@@ -7,10 +7,6 @@ import java.util.List;
 
 import com.scr.vo.StudentVO;
 
-/**
- * @author pavanibaradi
- *
- */
 public interface StudentsDAO {
 
 	/**

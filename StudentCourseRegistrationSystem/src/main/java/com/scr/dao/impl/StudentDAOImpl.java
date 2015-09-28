@@ -21,10 +21,7 @@ import com.scr.vo.CoursesVO;
 import com.scr.vo.ScheduleVO;
 import com.scr.vo.StudentVO;
 
-/**
- * @author pavanibaradi
- *
- */
+
 public class StudentDAOImpl implements StudentsDAO{
 	private Properties dbQueries = PropertyLoader.getDbProperties();
 	private PreparedStatement preparedStatement = null;

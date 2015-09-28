@@ -5,10 +5,6 @@ package com.scr.vo;
 
 import java.util.List;
 
-/**
- * @author pavanibaradi
- *
- */
 public class StudentVO {
 	private int studentId;
 	private String firstName ;
@@ -107,6 +103,6 @@ public class StudentVO {
 	}
 	
 	public String toString(){
-		return "Student Name "+firstName +" "+lastName +" email "+emailId;
+		return "Student Name: "+firstName +" "+lastName +" email: "+emailId;
 	}
 }

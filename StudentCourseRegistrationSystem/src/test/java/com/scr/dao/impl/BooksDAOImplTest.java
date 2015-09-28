@@ -1,4 +1,4 @@
-package com.scr.test;
+package com.scr.dao.impl;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 
 import com.scr.dao.impl.BooksDAOImpl;
 
-public class BooksTest {
+public class BooksDAOImplTest {
 	private BooksDAOImpl booksDAOObj = null;
 	@BeforeClass
 	public void beforeClass(){

@@ -3,26 +3,76 @@
  */
 package com.scr.client;
 
-import java.util.List;
+import java.util.Scanner;
 
 import com.scr.dao.StudentsDAO;
 import com.scr.dao.impl.StudentDAOImpl;
+import com.scr.util.Constants;
 import com.scr.vo.StudentVO;
 
-/**
- * @author pavanibaradi
- *
- */
 public class SCRMain {
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		System.out.println("Jar Created");
+		Scanner scanner = new Scanner(System.in);
 		StudentsDAO studentDAO = new StudentDAOImpl();
-		List<StudentVO> studentsList = studentDAO.getStudents();
-		System.out.println("list" +studentsList);
+		StudentVO studentVO = null;
+		String firstName = null;
+		String password = null;
+		String email = null;
+		String lastName = null;
+		String statusMessage = null;
+
+		System.out.println("========================== Welcome to Student Course Registratin System =======================");
+		System.out.println("Are you a new Student? or Existing Student? Select one of the following.");
+		System.out.println("1. New Student");
+		System.out.println("2. Existing Student ");
+		System.out.println("3. Admin "+scanner.next());
+		switch (Integer.parseInt(args[0])) {
+		case 1:	
+			System.out.println("Enter your details to signup");
+			System.out.println("First Name");
+			firstName = scanner.next();
+			System.out.println("Last Name");
+			lastName = scanner.next();
+			System.out.println("Email id");
+			email = scanner.next();
+			System.out.println("Password");
+			password = scanner.next();
+			studentVO = new StudentVO(0, firstName, lastName, email, password);
+			statusMessage = studentDAO.createStudent(studentVO);
+			if(statusMessage.equals(Constants.SUCCESS)){
+				System.out.println("Student registered succesfully");
+			}else
+				System.out.println("Cannot create student with email id"+email);
+			break;
+		case 2:
+			System.out.println("Enter login credentials");
+			System.out.println("Email ID: ");
+			email = scanner.next();
+			System.out.println("Password: ");
+			password = scanner.next();
+			studentVO = studentDAO.login(email, password);
+			if(studentVO!=null)
+				System.out.println("Student successfully logged in "+studentVO.toString());
+		case 3:
+			System.out.println("Enter login credentials");
+			System.out.println("Email ID: ");
+			email = scanner.next();
+			System.out.println("Password: ");
+			password = scanner.next();
+			studentVO = studentDAO.login(email, password);
+			if(studentVO!=null)
+				System.out.println("Admin successfully logged in "+studentVO.toString());
+		default:
+			break;
+		}
+
+
+
+		scanner.close();
 	}
 
 }
