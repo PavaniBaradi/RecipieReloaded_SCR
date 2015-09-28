@@ -5,13 +5,14 @@
 
 	<groupId>com.scr</groupId>
 	<artifactId>StudentCourseRegistrationSystem</artifactId>
-	<packaging>jar</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>StudentCourseRegistrationSystem</name>
 
 	<build>
 		<finalName>StudentCourseRegistrationSystem</finalName>
+		
 		<plugins>
+		
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -21,6 +22,11 @@
 					<source>1.7</source>
 					<target>1.7</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
 			</plugin>
 		</plugins>
 	</build>
@@ -35,11 +41,6 @@
 				<scope>import</scope>
 			</dependency>
 			<dependency>
-				<groupId>commons-dbcp2</groupId>
-				<artifactId>commons-dbcp2</artifactId>
-				<version>2.1.1</version>
-			</dependency>
-			<dependency>
 				<groupId>org.postgresql</groupId>
 				<artifactId>postgresql</artifactId>
 				<version>9.4-1200-jdbc41</version>
@@ -48,6 +49,11 @@
 				<groupId>org.testng</groupId>
 				<artifactId>testng</artifactId>
 				<version>6.1.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-dbcp2</artifactId>
+				<version>2.1</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -70,7 +76,6 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-dbcp2</artifactId>
-			<version>2.1</version>
 		</dependency>
 
 		<dependency>
