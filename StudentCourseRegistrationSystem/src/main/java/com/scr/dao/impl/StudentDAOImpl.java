@@ -24,9 +24,6 @@ import com.scr.vo.StudentVO;
 
 public class StudentDAOImpl implements StudentsDAO{
 	private Properties dbQueries = PropertyLoader.getDbProperties();
-	private PreparedStatement preparedStatement = null;
-	private ResultSet resultSet = null;
-	private Connection connection = null;
 
 	/**
 	 * This method adds student details to STUDENT table
@@ -38,6 +35,8 @@ public class StudentDAOImpl implements StudentsDAO{
 	 */
 	@Override
 	public String createStudent(StudentVO studentVO) {
+		PreparedStatement preparedStatement = null;
+		Connection connection = null;
 		int index = 0;
 		String statusMessage = null;
 		try {
@@ -102,6 +101,9 @@ public class StudentDAOImpl implements StudentsDAO{
 	private boolean checkStudentExists(Connection connection, String emailId) {
 		boolean studentExists = false;
 		int count = 0;
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
 		try {
 			//prepare query to check if student exists
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("check.student"));
@@ -138,6 +140,8 @@ public class StudentDAOImpl implements StudentsDAO{
 	public String updateStudent(StudentVO studentVO) {
 		int index = 0;
 		String statusMessage = null;
+		PreparedStatement preparedStatement = null;
+		Connection connection = null;
 
 		try {
 			//get connection to DB
@@ -191,6 +195,8 @@ public class StudentDAOImpl implements StudentsDAO{
 	@Override
 	public String deleteStudent(StudentVO studentVO) {
 		String statusMessage = null;
+		PreparedStatement preparedStatement = null;
+		Connection connection = null;
 
 		try {
 			//get connection to DB
@@ -240,6 +246,9 @@ public class StudentDAOImpl implements StudentsDAO{
 		String statusMessage = null;
 		List<StudentVO> studentsList = new ArrayList<StudentVO>();
 		StudentVO studentVO = null;
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		Connection connection = null;
 
 		try {
 			//get connection to DB
@@ -276,6 +285,9 @@ public class StudentDAOImpl implements StudentsDAO{
 	@Override
 	public StudentVO getStudentDetails(String email) {
 		StudentVO studentVO =null;
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		Connection connection = null;
 		try {
 			connection = DBConnectionManager.getConnection();
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("list.student.details"));
@@ -303,6 +315,8 @@ public class StudentDAOImpl implements StudentsDAO{
 	@Override
 	public StudentVO getStudentEnrolledCourses(String emailId) {
 		StudentVO studentVO = null;
+
+		Connection connection = null;
 		List<CoursesVO> courseList = null;
 		try {
 			studentVO = getStudentDetails(emailId);
@@ -328,6 +342,8 @@ public class StudentDAOImpl implements StudentsDAO{
 	 * @return
 	 */
 	private List<CoursesVO> getCourseSchedule(Connection connection, String emailId) {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
 		List<CoursesVO> courseList = null;
 		CoursesVO courseVO = null;
 		int courseId = 0;
@@ -390,6 +406,8 @@ public class StudentDAOImpl implements StudentsDAO{
 	@Override
 	public String enrollCourse(String emailId, int courseId, int scheduleId) {
 		String statusMessage = null;
+		PreparedStatement preparedStatement = null;
+		Connection connection = null;
 
 		try {
 			connection = DBConnectionManager.getConnection();
@@ -432,6 +450,9 @@ public class StudentDAOImpl implements StudentsDAO{
 	private boolean checkCourseEnrolled(Connection connection, String emailId, int courseId) {
 		int count=0;
 		boolean alreadyEnrolled = false;
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
 		try{
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("check.course.enrolled"));
 			preparedStatement.setString(1, emailId);
@@ -468,7 +489,9 @@ public class StudentDAOImpl implements StudentsDAO{
 	@Override
 	public String dropCourse(String emailId, int courseId, int scheduleId){
 		String statusMessage = null;
-
+		PreparedStatement preparedStatement = null;
+		Connection connection = null;
+		
 		try {
 			connection = DBConnectionManager.getConnection();
 			connection.setAutoCommit(false);
@@ -504,6 +527,10 @@ public class StudentDAOImpl implements StudentsDAO{
 	@Override
 	public StudentVO login(String email, String password) {
 		StudentVO studentVO =null;
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		Connection connection = null;
+		
 		try {
 			connection = DBConnectionManager.getConnection();
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("login"));
