@@ -36,4 +36,12 @@ public interface BooksDAO {
 	 */
 	public String deleteBook(BookVO bookVO);
 	
+	/**
+	 * Gets the Course Books
+	 * @param connection
+	 * @param courseId
+	 * @return List<String>
+	 */
+	public List<BookVO> getCourseBooks(int courseId);
+	
 }

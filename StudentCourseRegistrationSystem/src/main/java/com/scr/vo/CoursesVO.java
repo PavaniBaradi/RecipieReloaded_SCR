@@ -18,6 +18,20 @@ public class CoursesVO {
 	 * @param courseName
 	 * @param courseAmount
 	 * @param courseDesc
+	 */
+	public CoursesVO(int courseId, String courseName, int courseAmount, String courseDesc) {
+		super();
+		this.courseId = courseId;
+		this.courseName = courseName;
+		this.courseAmount = courseAmount;
+		this.courseDesc = courseDesc;
+	}
+
+	/**
+	 * @param courseId
+	 * @param courseName
+	 * @param courseAmount
+	 * @param courseDesc
 	 * @param scheduleList
 	 * @param booksList
 	 * @param curriculumList

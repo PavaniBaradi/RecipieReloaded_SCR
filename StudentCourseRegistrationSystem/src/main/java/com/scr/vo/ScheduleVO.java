@@ -5,7 +5,7 @@ import java.sql.Time;
 
 
 public class ScheduleVO {
-
+	private int scheduleId;
 	private Date startDate;
 	private Date endDate;
 	private Time startTime;
@@ -26,6 +26,20 @@ public class ScheduleVO {
 		this.endTime = endTime;
 	}
 	
+	/**
+	 * @return the scheduleId
+	 */
+	public int getScheduleId() {
+		return scheduleId;
+	}
+
+	/**
+	 * @param scheduleId the scheduleId to set
+	 */
+	public void setScheduleId(int scheduleId) {
+		this.scheduleId = scheduleId;
+	}
+
 	/**
 	 * @return the startDate
 	 */

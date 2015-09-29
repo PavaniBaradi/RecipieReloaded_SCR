@@ -64,6 +64,12 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 				System.out.println(statusMessage);
 			}
 		}finally{
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
@@ -215,7 +221,6 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 				preparedStatement.setInt(1, scheduleID);
 				resultSet = preparedStatement.executeQuery();
 				statusMessage = Constants.SUCCESS;
-				connection.setAutoCommit(true);
 			}catch (Exception exp) {
 				statusMessage = Constants.FAILURE;
 				System.out.println("Error : " + exp);
@@ -225,6 +230,12 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 					System.out.println(statusMessage);
 				}
 			} finally {
+				try {
+					connection.setAutoCommit(true);
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				DBConnectionManager.close(connection, preparedStatement, resultSet);
 			}  
 		}
@@ -239,8 +250,6 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 	public String updateSchedule(ScheduleVO scheduleVO) {
 		PreparedStatement preparedStatement = null;
 		Connection connection = null;
-
-		int scheduleID = 0;
 		String statusMessage = null;
 
 		try {
@@ -257,13 +266,12 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			preparedStatement.setDate(++index, scheduleVO.getEndDate());
 			preparedStatement.setTime(++index, scheduleVO.getStartTime());
 			preparedStatement.setTime(++index, scheduleVO.getEndTime());
-			preparedStatement.setInt(++index, scheduleID);
+			preparedStatement.setInt(++index, scheduleVO.getScheduleId());
 			System.out.println("Updating Schedule using DDL statement "+preparedStatement.toString());
 
 			//execute the insert statement
 			preparedStatement.executeUpdate();
 			connection.commit();
-			connection.setAutoCommit(true);
 			statusMessage = Constants.SUCCESS;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -282,11 +290,97 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 				System.out.println(statusMessage);
 			}
 		} finally {
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		System.out.println("statusMessage =====> " + statusMessage);
 		return statusMessage;
 
+	}
+
+	/**
+	 * Gets the course schedule
+	 * @param connection
+	 * @param courseId
+	 * @return List<ScheduleVO>
+	 */
+	public List<ScheduleVO> getCourseSchedule(int courseId) {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		List<ScheduleVO> courseSchedule = null;
+		Connection connection = null;
+
+		try{
+			connection = DBConnectionManager.getConnection();
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.get.schedule"));
+			preparedStatement.setInt(1, courseId);
+			resultSet = preparedStatement.executeQuery();
+			courseSchedule =new ArrayList<ScheduleVO>();
+			while(resultSet.next()){
+				courseSchedule.add(new ScheduleVO(resultSet.getDate(Constants.START_DATE), resultSet.getDate(Constants.END_DATE), resultSet.getTime(Constants.START_TIME), resultSet.getTime(Constants.END_TIME)));
+			}
+
+		}catch(SQLException sqlExp){
+			System.out.println("SQLException occurred in getCourseSchedule() " + sqlExp.getMessage());
+		}catch(Exception exp){
+			System.out.println("Exception occurred in getCourseSchedule() "+exp.getMessage());
+		}finally{
+			DBConnectionManager.close(connection, preparedStatement, resultSet);
+		}
+		return courseSchedule;
+	}
+
+	/**
+	 * Adds the schedule for a course
+	 * @param connection
+	 * @param courseId
+	 * @param courseSchList
+	 * @return boolean
+	 * @throws Exception
+	 */
+
+	public String addCourseSchedule(int courseId, List<ScheduleVO> scheduleVOs) throws Exception {
+		PreparedStatement preparedStatement = null;
+		String statusMessage = null;
+		Connection connection = null;
+		try{
+			connection = DBConnectionManager.getConnection();
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.insert.schedule"));
+			for(ScheduleVO scheduleVO : scheduleVOs){
+				preparedStatement.setInt(1, courseId);
+				preparedStatement.setInt(2, scheduleVO.getScheduleId());
+				preparedStatement.addBatch();
+			}
+			int count[] = preparedStatement.executeBatch();
+			if(count.length > 0)
+				statusMessage = Constants.SUCCESS;
+
+		}catch(SQLException sqlExp){
+			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			System.out.println("SQLException occurred in insertCourseSchedule() " + sqlExp.getMessage());
+		}catch(Exception exp){
+			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			System.out.println("Exception occurred in insertCourseSchedule() "+exp.getMessage());
+			throw exp;
+		}finally{
+			DBConnectionManager.close(connection, preparedStatement, null);
+		}
+		return statusMessage;
 	}
 
 

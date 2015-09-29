@@ -5,17 +5,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import com.scr.dao.CourseDAO;
 import com.scr.util.Constants;
 import com.scr.util.DBConnectionManager;
 import com.scr.util.PropertyLoader;
-import com.scr.vo.CourseInfoVO;
-import com.scr.vo.CourseVO;
+import com.scr.vo.BookVO;
+import com.scr.vo.CoursesVO;
+import com.scr.vo.CurriculumVO;
 import com.scr.vo.ScheduleVO;
 
 public class CourseDAOImpl implements CourseDAO {
@@ -26,21 +25,22 @@ public class CourseDAOImpl implements CourseDAO {
 	 * Lists all courses which are enabled
 	 * @return List<CourseInfoVO> 
 	 */
-	public List<CourseInfoVO> listAllCourse(){
+	public List<CoursesVO> listAllCourse(){
 		
-		Connection conn = null;
-	    PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		List<CourseInfoVO> courseInfoList =null;
+		Connection connection = null;
+	    PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		List<CoursesVO> coursesList =null;
 		try {
-			conn = DBConnectionManager.getConnection();
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.list.all"));
-			rs = pstmt.executeQuery();
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.list.all"));
+			resultSet = preparedStatement.executeQuery();
 			
-			courseInfoList = new ArrayList<CourseInfoVO>();
-			while(rs.next()){
-				courseInfoList.add(new CourseInfoVO(rs.getInt(Constants.COURSE_ID), rs.getString(Constants.COURSE_NAME), 
-						rs.getInt(Constants.COURSE_AMOUNT), rs.getString(Constants.COURSE_DESC)));
+			coursesList = new ArrayList<CoursesVO>();
+			while(resultSet.next()){
+				coursesList.add(new CoursesVO(resultSet.getInt(Constants.COURSE_ID), resultSet.getString(Constants.COURSE_NAME), 
+						resultSet.getInt(Constants.COURSE_AMOUNT), resultSet.getString(Constants.COURSE_DESC)));
 			}
 			
 		}catch(SQLException sqlExp){
@@ -48,9 +48,14 @@ public class CourseDAOImpl implements CourseDAO {
 		}catch(Exception exp){
 			System.out.println("Exception occurred in listAllCourse() " + exp.getMessage());
 		}finally{
-			DBConnectionManager.close(conn, pstmt, rs);
+			try {
+			connection.setAutoCommit(true);
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-		return courseInfoList;
+			DBConnectionManager.close(connection, preparedStatement, resultSet);
+		}
+		return coursesList;
 	}
 	
 	/**
@@ -58,153 +63,161 @@ public class CourseDAOImpl implements CourseDAO {
 	 * @param courseId
 	 * @return Map<String, Object>
 	 */
-	public Map<String,Object> getCourseDetails(int courseId){
+	public CoursesVO getCourseDetails(int courseId){
 		
-		Connection conn = null;
-	    PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		Map<String,Object> courseDetails = new HashMap<String, Object>();
+		Connection connection = null;
+	    PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		CoursesVO courseVO = null;
 		try {
-			conn = DBConnectionManager.getConnection();
-			 
-			CourseInfoVO courseInfo =  getCourseInfo(conn, courseId);
-			List<ScheduleVO> courseSchedule = getCourseSchedule(conn, courseId);  
-			List<String> courseCurriculum = getCourseCurriculum(conn, courseId); // may want to use CurriculumVO
-			List<String> courseBooks = getCourseBooks(conn, courseId);  // may want to use BookVO
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.get.info"));
+			preparedStatement.setInt(1, courseId);
+			resultSet = preparedStatement.executeQuery();
+			while(resultSet.next()){
+				courseVO = new CoursesVO(resultSet.getInt(Constants.COURSE_ID), resultSet.getString(Constants.COURSE_NAME), resultSet.getInt(Constants.COURSE_AMOUNT), resultSet.getString(Constants.COURSE_DESC));
+			}
+			List<ScheduleVO> scheduleList = new ScheduleDAOImpl().getCourseSchedule(courseId);  
+			List<CurriculumVO> curriculumList = new CurriculumDAOImpl().getCourseCurriculum(courseId); // may want to use CurriculumVO
+			List<BookVO> booksList = new BooksDAOImpl().getCourseBooks(courseId);  // may want to use BookVO
 			
-			courseDetails.put("courseInfo", courseInfo);
-			courseDetails.put("courseSchedule", courseSchedule);
-			courseDetails.put("courseCurriculum", courseCurriculum);
-			courseDetails.put("courseBooks", courseBooks);
-			
+			courseVO.setBooksList(booksList);
+			courseVO.setCurriculumList(curriculumList);
+			courseVO.setScheduleList(scheduleList);
 		}catch(SQLException sqlExp){
 			System.out.println("SQLException occurred in getCourseDetails() " + sqlExp.getMessage());
 		}catch (Exception e) {
 			System.out.println("Exception occurred in getCourseDetails() "+e.getMessage());
 		}finally{
-			DBConnectionManager.close(conn, pstmt, rs);
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			DBConnectionManager.close(connection, preparedStatement, resultSet);
 		}
-		return courseDetails;
+		return courseVO;
 	}
 	
 	/**
 	 * Gets the Course Information
-	 * @param conn
+	 * @param connection
 	 * @param courseId
 	 * @return CourseInfoVO
 	 */
-	private CourseInfoVO getCourseInfo(Connection conn, int courseId) {
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		CourseInfoVO courseInfo = null;
-		
-		try{
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.get.info"));
-			pstmt.setInt(1, courseId);
-			rs = pstmt.executeQuery();
-			while(rs.next()){
-				courseInfo = new CourseInfoVO(rs.getInt("course_id"), rs.getString("course_name"), rs.getInt("amount"), rs.getString("course_description"));
-			}
-			
-		}catch(SQLException sqlExp){
-			System.out.println("SQLException occurred in getCourseInfo() " + sqlExp.getMessage());
-		}catch(Exception exp){
-			System.out.println("Exception occurred in getCourseInfo() "+exp.getMessage());
-		}finally{
-			DBConnectionManager.close(null, pstmt, rs);
-		}
-		return courseInfo;
-	}
+//	private CourseInfoVO getCourseInfo(Connection connection, int courseId) {
+//		PreparedStatement preparedStatement = null;
+//		ResultSet resultSet = null;
+//		CourseInfoVO courseInfo = null;
+//		
+//		try{
+//			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.get.info"));
+//			preparedStatement.setInt(1, courseId);
+//			resultSet = preparedStatement.executeQuery();
+//			while(resultSet.next()){
+//				courseInfo = new CourseInfoVO(resultSet.getInt("course_id"), resultSet.getString("course_name"), resultSet.getInt("amount"), resultSet.getString("course_description"));
+//			}
+//			
+//		}catch(SQLException sqlExp){
+//			System.out.println("SQLException occurred in getCourseInfo() " + sqlExp.getMessage());
+//		}catch(Exception exp){
+//			System.out.println("Exception occurred in getCourseInfo() "+exp.getMessage());
+//		}finally{
+//			DBConnectionManager.close(null, preparedStatement, resultSet);
+//		}
+//		return courseInfo;
+//	}
 	
 	/**
 	 * Gets the course schedule
-	 * @param conn
+	 * @param connection
 	 * @param courseId
 	 * @return List<ScheduleVO>
 	 */
-	private List<ScheduleVO> getCourseSchedule(Connection conn, int courseId) {
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		List<ScheduleVO> courseSchedule = null;
-		
-		try{
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.get.schedule"));
-			pstmt.setInt(1, courseId);
-			rs = pstmt.executeQuery();
-			courseSchedule =new ArrayList<ScheduleVO>();
-			while(rs.next()){
-				courseSchedule.add(new ScheduleVO(rs.getDate(1), rs.getDate(2), rs.getTime(3), rs.getTime(4)));
-			}
-			
-		}catch(SQLException sqlExp){
-			System.out.println("SQLException occurred in getCourseSchedule() " + sqlExp.getMessage());
-		}catch(Exception exp){
-			System.out.println("Exception occurred in getCourseSchedule() "+exp.getMessage());
-		}finally{
-			DBConnectionManager.close(null, pstmt, rs);
-		}
-		return courseSchedule;
-	}
+//	private List<ScheduleVO> getCourseSchedule(Connection connection, int courseId) {
+//		PreparedStatement preparedStatement = null;
+//		ResultSet resultSet = null;
+//		List<ScheduleVO> courseSchedule = null;
+//		
+//		try{
+//			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.get.schedule"));
+//			preparedStatement.setInt(1, courseId);
+//			resultSet = preparedStatement.executeQuery();
+//			courseSchedule =new ArrayList<ScheduleVO>();
+//			while(resultSet.next()){
+//				courseSchedule.add(new ScheduleVO(resultSet.getDate(1), resultSet.getDate(2), resultSet.getTime(3), resultSet.getTime(4)));
+//			}
+//			
+//		}catch(SQLException sqlExp){
+//			System.out.println("SQLException occurred in getCourseSchedule() " + sqlExp.getMessage());
+//		}catch(Exception exp){
+//			System.out.println("Exception occurred in getCourseSchedule() "+exp.getMessage());
+//		}finally{
+//			DBConnectionManager.close(null, preparedStatement, resultSet);
+//		}
+//		return courseSchedule;
+//	}
 	
 /**
  * Gets the Course Curriculum
- * @param conn
+ * @param connection
  * @param courseId
  * @return List<String>
  */
-	private List<String> getCourseCurriculum(Connection conn, int courseId) {
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		List<String> courseCurriculum = null;
-		
-		try{
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.get.curriculum"));
-			pstmt.setInt(1, courseId);
-			rs = pstmt.executeQuery();
-			courseCurriculum =new ArrayList<String>();
-			while(rs.next()){
-				courseCurriculum.add(rs.getString(1));
-			}
-			
-		}catch(SQLException sqlExp){
-			System.out.println("SQLException occurred in getCourseCurriculum() " + sqlExp.getMessage());
-		}catch(Exception exp){
-			System.out.println("Exception occurred in getCourseCurriculum() "+exp.getMessage());
-		}finally{
-			DBConnectionManager.close(null, pstmt, rs);
-		}
-		return courseCurriculum;
-	}
+//	private List<String> getCourseCurriculum(Connection connection, int courseId) {
+//		PreparedStatement preparedStatement = null;
+//		ResultSet resultSet = null;
+//		List<String> courseCurriculum = null;
+//		
+//		try{
+//			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.get.curriculum"));
+//			preparedStatement.setInt(1, courseId);
+//			resultSet = preparedStatement.executeQuery();
+//			courseCurriculum =new ArrayList<String>();
+//			while(resultSet.next()){
+//				courseCurriculum.add(resultSet.getString(1));
+//			}
+//			
+//		}catch(SQLException sqlExp){
+//			System.out.println("SQLException occurred in getCourseCurriculum() " + sqlExp.getMessage());
+//		}catch(Exception exp){
+//			System.out.println("Exception occurred in getCourseCurriculum() "+exp.getMessage());
+//		}finally{
+//			DBConnectionManager.close(null, preparedStatement, resultSet);
+//		}
+//		return courseCurriculum;
+//	}
 		
 	/**
 	 * Gets the Course Books
-	 * @param conn
+	 * @param connection
 	 * @param courseId
 	 * @return List<String>
 	 */
-	private List<String> getCourseBooks(Connection conn, int courseId) {
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		List<String> courseBooks = null;
-		
-		try{
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.get.books"));
-			pstmt.setInt(1, courseId);
-			rs = pstmt.executeQuery();
-			courseBooks =new ArrayList<String>();
-			while(rs.next()){
-				courseBooks.add(rs.getString(1));
-			}
-			
-		}catch(SQLException sqlExp){
-			System.out.println("SQLException occurred in getCourseBooks() " + sqlExp.getMessage());
-		}catch(Exception exp){
-			System.out.println("Exception occurred in getCourseBooks() "+exp.getMessage());
-		}finally{
-			DBConnectionManager.close(null, pstmt, rs);
-		}
-		return courseBooks;
-	}
+//	private List<String> getCourseBooks(Connection connection, int courseId) {
+//		PreparedStatement preparedStatement = null;
+//		ResultSet resultSet = null;
+//		List<String> courseBooks = null;
+//		
+//		try{
+//			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.get.books"));
+//			preparedStatement.setInt(1, courseId);
+//			resultSet = preparedStatement.executeQuery();
+//			courseBooks =new ArrayList<String>();
+//			while(resultSet.next()){
+//				courseBooks.add(resultSet.getString(1));
+//			}
+//			
+//		}catch(SQLException sqlExp){
+//			System.out.println("SQLException occurred in getCourseBooks() " + sqlExp.getMessage());
+//		}catch(Exception exp){
+//			System.out.println("Exception occurred in getCourseBooks() "+exp.getMessage());
+//		}finally{
+//			DBConnectionManager.close(null, preparedStatement, resultSet);
+//		}
+//		return courseBooks;
+//	}
 
 	/**
 	 * Disables the course
@@ -213,29 +226,96 @@ public class CourseDAOImpl implements CourseDAO {
 	 */
 	public String disableCourse(int courseId){
 		
-		Connection conn = null;
-	    PreparedStatement pstmt = null;
+		Connection connection = null;
+	    PreparedStatement preparedStatement = null;
 		StringBuffer sbuffStatus = new StringBuffer();
 		
 		try {
-			conn = DBConnectionManager.getConnection();
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.disable"));
-			pstmt.setInt(1,courseId);
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.disable"));
+			preparedStatement.setInt(1,courseId);
 			
-			int status = pstmt.executeUpdate();
+			int status = preparedStatement.executeUpdate();
 			//Returns 1 if any rows updated, returns 0 if no rows updated
 			if(status>0)
 				sbuffStatus.append("successfully disabled the course : ").append(courseId);
 			else if(status==0)
 				sbuffStatus.append("No course with courseId : ").append(courseId).append(" available to disable");
-			
+			connection.commit();
 		} catch(SQLException sqlExp){
 			System.out.println("SQLException occurred in disableCourse() " + sqlExp.getMessage());
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(sbuffStatus.toString());
+			}
 		}catch (Exception e) {
 			System.out.println("Exception occurred in getCourseInfo() "+e.getMessage());
 			sbuffStatus.append("An error occurred while disabling the course");
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(sbuffStatus.toString());
+			}
 		}finally{
-			DBConnectionManager.close(conn, pstmt, null);
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			DBConnectionManager.close(connection, preparedStatement, null);
+		}
+		
+		return sbuffStatus.toString();
+	}
+	
+	/**
+	 * Disables the course
+	 * @param courseId
+	 * @return String 
+	 */
+	public String enableCourse(int courseId){
+		
+		Connection connection = null;
+	    PreparedStatement preparedStatement = null;
+		StringBuffer sbuffStatus = new StringBuffer();
+		
+		try {
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.enable"));
+			preparedStatement.setInt(1,courseId);
+			
+			int status = preparedStatement.executeUpdate();
+			//Returns 1 if any rows updated, returns 0 if no rows updated
+			if(status>0)
+				sbuffStatus.append("successfully enabled the course : ").append(courseId);
+			else if(status==0)
+				sbuffStatus.append("No course with courseId : ").append(courseId).append(" available to enable");
+			connection.commit();
+		} catch(SQLException sqlExp){
+			System.out.println("SQLException occurred in enableCourse() " + sqlExp.getMessage());
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(sbuffStatus.toString());
+			}
+		}catch (Exception e) {
+			System.out.println("Exception occurred in getCourseInfo() "+e.getMessage());
+			sbuffStatus.append("An error occurred while enabling the course");
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(sbuffStatus.toString());
+			}
+		}finally{
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		
 		return sbuffStatus.toString();
@@ -248,33 +328,37 @@ public class CourseDAOImpl implements CourseDAO {
 	 * @return String
 	 * @throws SQLException
 	 */
-	public String addCourse(CourseVO courseVo){
+	public String addCourse(CoursesVO courseVo){
 	
-		Connection conn = null;
-	    PreparedStatement pstmt = null;
-		String statusMessage ="";
+		Connection connection = null;
+	    PreparedStatement preparedStatement = null;
+		String statusMessage = null;
 	    try {
-			conn = DBConnectionManager.getConnection();
-			conn.setAutoCommit(false);
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
 		
-			int courseId = insertCourseInfo(conn, courseVo.getCourseInfo());
-			boolean insertCourseScheduleStatus = insertCourseSchedule(conn, courseId, courseVo.getCourseSchList());
-			boolean insertCourseCurriculumStatus = insertCourseCurriculum(conn, courseId, courseVo.getCurriculumList());
-			boolean insertCourseBookStatus = insertCourseBook(conn, courseId, courseVo.getBooksList());
+			int courseId = addCourseInfo(connection, courseVo);
+			String insertCourseScheduleStatus = new ScheduleDAOImpl().addCourseSchedule(courseId, courseVo.getScheduleList());
+			String insertCourseCurriculumStatus = new CurriculumDAOImpl().addCourseCurriculum(courseId, courseVo.getCurriculumList());
+			String insertCourseBookStatus = new BooksDAOImpl().addCourseBook(courseId, courseVo.getBooksList());
+			String eanbleCourseStatus = enableCourse(courseId);
 			
-			if(insertCourseScheduleStatus && insertCourseCurriculumStatus && insertCourseBookStatus){
-				conn.commit();
-				statusMessage= "Successfully created course : "+courseVo.getCourseInfo().getCourseName();
+			
+			if(insertCourseScheduleStatus.equals(Constants.SUCCESS) && insertCourseCurriculumStatus.equals(Constants.SUCCESS) && insertCourseBookStatus.equals(Constants.SUCCESS) && 
+					eanbleCourseStatus.equals(Constants.SUCCESS)){
+				connection.commit();
+				statusMessage= "Successfully created course : "+courseVo.getCourseName();
 			}else{
-				conn.rollback();
+				connection.rollback();
 				statusMessage = "Unable to create the course due to some issues";
 			}
+			connection.commit();
 				
 		} catch(SQLException sqlExp){
 			System.out.println("SQLException occurred in addCourse() " + sqlExp.getMessage());
 		}catch (Exception e) {
 			try {
-				conn.rollback();
+				connection.rollback();
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
@@ -282,182 +366,192 @@ public class CourseDAOImpl implements CourseDAO {
 			System.out.println("Exception occurred in addCourse() "+e.getMessage());
 		}finally{
 			try {
-				conn.setAutoCommit(true);
+				connection.setAutoCommit(true);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			DBConnectionManager.close(conn, pstmt, null);
+			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
 	}
 
 	/**
 	 * Insert the Course information
-	 * @param conn
+	 * @param connection
 	 * @param couseInfo
 	 * @return int
 	 * @throws Exception
 	 */
-	private int insertCourseInfo(Connection conn, CourseInfoVO couseInfo) throws Exception {
+	private int addCourseInfo(Connection connection, CoursesVO courseVO) throws Exception {
 		
-		 PreparedStatement pstmt = null;
-		 ResultSet rs=null;
-	//	 String insertCourseQuery = SqlQueryConstants.COURSE_INSERT_INFO;
-	//	 String newCourseIdQuery = SqlQueryConstants.COURSE_NEW_COURSE_ID; // Get the latest/newly added courseId
+		 PreparedStatement preparedStatement = null;
+		 ResultSet resultSet=null;
 		 int courseId=0;
 		try{
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.insert.info"));
-			pstmt.setString(1, couseInfo.getCourseName());
-			pstmt.setInt(2, couseInfo.getCourseAmount());
-			pstmt.setString(3, couseInfo.getCourseDesc());
-			pstmt.setString(4, "Y"); // adding with "Y" which means enabled
-			int status = pstmt.executeUpdate();
-			if(pstmt!=null)
-				pstmt.close();
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.insert.info"),PreparedStatement.RETURN_GENERATED_KEYS);
+			preparedStatement.setString(1, courseVO.getCourseName());
+			preparedStatement.setInt(2, courseVO.getCourseAmount());
+			preparedStatement.setString(3, courseVO.getCourseDesc());
+			preparedStatement.setString(4, "N"); // adding with "Y" which means enabled
+			preparedStatement.executeUpdate();
+			resultSet = preparedStatement.getGeneratedKeys();
+			if (resultSet.next())
+				courseId = resultSet.getInt(Constants.COURSE_ID);
 			
-			if(status>0){
-				pstmt = conn.prepareStatement(dbQueries.getProperty("course.new.course_id"));
-				rs = pstmt.executeQuery();
-				while(rs.next())
-					courseId = rs.getInt(1);
-			}
 		}catch(SQLException sqlExp){
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			System.out.println("SQLException occurred in insertCourseInfo() " + sqlExp.getMessage());
 		}catch(Exception exp){
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			System.out.println("Exception occurred in insertCourseInfo() "+exp.getMessage());
 			throw exp;
 		}finally{
-			DBConnectionManager.close(null, pstmt, rs);
+			DBConnectionManager.close(null, preparedStatement, resultSet);
 		}
 		return courseId;
 	}
 	
 	/**
 	 * Adds the schedule for a course
-	 * @param conn
+	 * @param connection
 	 * @param courseId
 	 * @param courseSchList
 	 * @return boolean
 	 * @throws Exception
 	 */
 	
-	private boolean insertCourseSchedule(Connection conn, int courseId, List<Integer> courseSchList) throws Exception {
-		 PreparedStatement pstmt = null;
-		 boolean success = false;
-		 try{
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.insert.schedule"));
-			for(Integer scheduleId : courseSchList){
-				pstmt.setInt(1, courseId);
-				pstmt.setInt(2, scheduleId);
-			    pstmt.addBatch();
-			}
-			int count[] = pstmt.executeBatch();
-			if(count.length > 0)
-				success =true;
-			
-		}catch(SQLException sqlExp){
-			System.out.println("SQLException occurred in insertCourseSchedule() " + sqlExp.getMessage());
-		}catch(Exception exp){
-			System.out.println("Exception occurred in insertCourseSchedule() "+exp.getMessage());
-			throw exp;
-		}finally{
-			DBConnectionManager.close(null, pstmt, null);
-		}
-		return success;
-	}
+//	private boolean insertCourseSchedule(Connection connection, int courseId, List<Integer> courseSchList) throws Exception {
+//		 PreparedStatement preparedStatement = null;
+//		 boolean success = false;
+//		 try{
+//			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.insert.schedule"));
+//			for(Integer scheduleId : courseSchList){
+//				preparedStatement.setInt(1, courseId);
+//				preparedStatement.setInt(2, scheduleId);
+//			    preparedStatement.addBatch();
+//			}
+//			int count[] = preparedStatement.executeBatch();
+//			if(count.length > 0)
+//				success =true;
+//			
+//		}catch(SQLException sqlExp){
+//			System.out.println("SQLException occurred in insertCourseSchedule() " + sqlExp.getMessage());
+//		}catch(Exception exp){
+//			System.out.println("Exception occurred in insertCourseSchedule() "+exp.getMessage());
+//			throw exp;
+//		}finally{
+//			DBConnectionManager.close(null, preparedStatement, null);
+//		}
+//		return success;
+//	}
 	
 	/**
 	 * Inserts curriculum for a course
-	 * @param conn
+	 * @param connection
 	 * @param courseId
 	 * @param curriculumList
 	 * @return boolean 
 	 * @throws Exception
 	 */
-	private boolean insertCourseCurriculum(Connection conn, int courseId, List<Integer> curriculumList) throws Exception {
-		 PreparedStatement pstmt = null;
-		 boolean success = false;
-		try{
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.insert.curriculum"));
-			for(int curriculum_id : curriculumList){
-				pstmt.setInt(1, courseId);
-				pstmt.setInt(2, curriculum_id);
-			    pstmt.addBatch();
-			}
-			int count[] = pstmt.executeBatch();
-			if(count.length > 0)
-				success =true;
-			
-		}catch(SQLException sqlExp){
-			System.out.println("SQLException occurred in insertCourseCurriculum() " + sqlExp.getMessage());
-		}catch(Exception exp){
-			System.out.println("Exception occurred in insertCourseCurriculum() "+exp.getMessage());
-			throw exp;
-		}finally{
-			DBConnectionManager.close(null, pstmt, null);
-		}
-		return success;
-	}
+//	private boolean insertCourseCurriculum(Connection connection, int courseId, List<Integer> curriculumList) throws Exception {
+//		 PreparedStatement preparedStatement = null;
+//		 boolean success = false;
+//		try{
+//			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.insert.curriculum"));
+//			for(int curriculum_id : curriculumList){
+//				preparedStatement.setInt(1, courseId);
+//				preparedStatement.setInt(2, curriculum_id);
+//			    preparedStatement.addBatch();
+//			}
+//			int count[] = preparedStatement.executeBatch();
+//			if(count.length > 0)
+//				success =true;
+//			
+//		}catch(SQLException sqlExp){
+//			System.out.println("SQLException occurred in insertCourseCurriculum() " + sqlExp.getMessage());
+//		}catch(Exception exp){
+//			System.out.println("Exception occurred in insertCourseCurriculum() "+exp.getMessage());
+//			throw exp;
+//		}finally{
+//			DBConnectionManager.close(null, preparedStatement, null);
+//		}
+//		return success;
+//	}
 
 	/**
 	 * Inserts books for a course
-	 * @param conn
+	 * @param connection
 	 * @param courseId
 	 * @param booksList
 	 * @return boolean
 	 * @throws Exception
 	 */
-	private boolean insertCourseBook(Connection conn, int courseId, List<Integer> booksList) throws Exception {
-		 PreparedStatement pstmt = null;
-		 boolean success = false;
-		try{
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.insert.book"));
-			for(Integer bookId : booksList){
-				pstmt.setInt(1, courseId);
-				pstmt.setInt(2, bookId);
-			    pstmt.addBatch();
-			}
-			int count[] = pstmt.executeBatch();
-			if(count.length > 0)
-				success =true;
-		}catch(SQLException sqlExp){
-			System.out.println("SQLException occurred in insertCourseBook() " + sqlExp.getMessage());
-		}catch(Exception exp){
-			System.out.println("Exception occurred in insertCourseBook() "+exp.getMessage());
-			throw exp;
-		}finally{
-			DBConnectionManager.close(null, pstmt, null);
-		}
-		return success;
-	}
+//	private boolean insertCourseBook(Connection connection, int courseId, List<Integer> booksList) throws Exception {
+//		 PreparedStatement preparedStatement = null;
+//		 boolean success = false;
+//		try{
+//			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.insert.book"));
+//			for(Integer bookId : booksList){
+//				preparedStatement.setInt(1, courseId);
+//				preparedStatement.setInt(2, bookId);
+//			    preparedStatement.addBatch();
+//			}
+//			int count[] = preparedStatement.executeBatch();
+//			if(count.length > 0)
+//				success =true;
+//		}catch(SQLException sqlExp){
+//			System.out.println("SQLException occurred in insertCourseBook() " + sqlExp.getMessage());
+//		}catch(Exception exp){
+//			System.out.println("Exception occurred in insertCourseBook() "+exp.getMessage());
+//			throw exp;
+//		}finally{
+//			DBConnectionManager.close(null, preparedStatement, null);
+//		}
+//		return success;
+//	}
 	
 	/**
 	 * Updates the Course information
 	 *
 	 */
 
-	public String updateCourseInfo(int courseId, CourseInfoVO courseInfoVo) {
+	public String updateCourseInfo(CoursesVO courseVo) {
 		
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		String statusMessage = "";
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		String statusMessage = null;
 		try{
-			conn = DBConnectionManager.getConnection();
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.update.course_info"));
-			pstmt.setString(1, courseInfoVo.getCourseName());
-			pstmt.setInt(2, courseInfoVo.getCourseAmount());
-			pstmt.setString(3, courseInfoVo.getCourseDesc());
-			pstmt.setInt(4, courseId);
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.update.course_info"));
+			preparedStatement.setString(1, courseVo.getCourseName());
+			preparedStatement.setInt(2, courseVo.getCourseAmount());
+			preparedStatement.setString(3, courseVo.getCourseDesc());
+			preparedStatement.setInt(4, courseVo.getCourseId());
 			
-			int count = pstmt.executeUpdate();
+			int count = preparedStatement.executeUpdate();
 			if(count > 0)
-				statusMessage ="Successfully updated the details";
-			
+				statusMessage =Constants.SUCCESS;
+			connection.commit();
 		}catch(Exception exp){
-			statusMessage = "An error occured while updating the details";
+			statusMessage = Constants.FAILURE;
 			System.out.println("Exception occurred in updateCourseInfo() "+exp.getMessage());
 		}finally{
-			DBConnectionManager.close(conn, pstmt, null);
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
 	}
@@ -465,42 +559,42 @@ public class CourseDAOImpl implements CourseDAO {
 	/**
 	 * Updates the course schedule
 	 */
-	public String updateCourseSchedule(int courseId, List<Integer> courseSchList) {
+	public String updateCourseSchedule(int courseId, List<ScheduleVO> scheduleVOs) {
 		
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		String statusMessage = "";
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		String statusMessage = null;
 		try{
-			conn = DBConnectionManager.getConnection();
-			conn.setAutoCommit(false);
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.delete.schedule"));
-			pstmt.setInt(1, courseId);
-			int status = pstmt.executeUpdate();
-			if(pstmt!=null)
-				pstmt.close();
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.delete.schedule"));
+			preparedStatement.setInt(1, courseId);
+			int status = preparedStatement.executeUpdate();
+			if(preparedStatement!=null)
+				preparedStatement.close();
 			
 			if(status>0){
-				boolean insertSchstatus = insertCourseSchedule(conn, courseId, courseSchList);
-				if(insertSchstatus){
-					conn.commit();
-					statusMessage ="Successfully updated the details";
+				String insertSchstatus = new ScheduleDAOImpl().addCourseSchedule(courseId, scheduleVOs);
+				if(insertSchstatus.equals(Constants.SUCCESS)){
+					connection.commit();
+					statusMessage = Constants.SUCCESS;
 				}
 			}
 		}catch(Exception exp){
 			try {
-				conn.rollback();
+				connection.rollback();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 			System.out.println("Exception occurred in updateCourseSchedule() "+exp.getMessage());
-			statusMessage = "An error occured while updating the details";
+			statusMessage = Constants.FAILURE;
 		}finally{
 			try {
-				conn.setAutoCommit(true);
+				connection.setAutoCommit(true);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			DBConnectionManager.close(conn, pstmt, null);
+			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
 	}
@@ -508,41 +602,41 @@ public class CourseDAOImpl implements CourseDAO {
 /**
  * Updates the course curriculum
  */
-	public String updateCourseCurriculum(int courseId, List<Integer> curriculumList) {
-		Connection conn = null;
-		PreparedStatement pstmt = null;
+	public String updateCourseCurriculum(int courseId, List<CurriculumVO> curriculumList) {
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
 		String statusMessage = "";
 		try{
-			conn = DBConnectionManager.getConnection();
-			conn.setAutoCommit(false);
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.delete.curriculum"));
-			pstmt.setInt(1, courseId);
-			int status = pstmt.executeUpdate();
-			if(pstmt!=null)
-				pstmt.close();
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.delete.curriculum"));
+			preparedStatement.setInt(1, courseId);
+			int status = preparedStatement.executeUpdate();
+			if(preparedStatement!=null)
+				preparedStatement.close();
 			
 			if(status>0){
-				boolean insertCurrStatus = insertCourseCurriculum(conn, courseId, curriculumList);
-				if(insertCurrStatus){
-					conn.commit();
-					statusMessage ="Successfully updated the details";
+				String insertCurrStatus = new CurriculumDAOImpl().addCourseCurriculum(courseId, curriculumList);
+				if(insertCurrStatus.equals(Constants.SUCCESS)){
+					connection.commit();
+					statusMessage = Constants.SUCCESS;
 				}
 			}
 		}catch(Exception exp){
 			try {
-				conn.rollback();
+				connection.rollback();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 			System.out.println("Exception occurred in updateCourseCurriculum() "+exp.getMessage());
-			statusMessage = "An error occured while updating the details";
+			statusMessage = Constants.FAILURE;
 		}finally{
 			try {
-				conn.setAutoCommit(true);
+				connection.setAutoCommit(true);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			DBConnectionManager.close(conn, pstmt, null);
+			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
 	}
@@ -550,41 +644,41 @@ public class CourseDAOImpl implements CourseDAO {
 	/**
 	 * Updates the course book
 	 */
-	public String updateCourseBook(int courseId, List<Integer> booksList) {
-		Connection conn = null;
-		PreparedStatement pstmt = null;
+	public String updateCourseBook(int courseId, List<BookVO> booksList) {
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
 		String statusMessage = "";
 		try{
-			conn = DBConnectionManager.getConnection();
-			conn.setAutoCommit(false);
-			pstmt = conn.prepareStatement(dbQueries.getProperty("course.delete.book"));
-			pstmt.setInt(1, courseId);
-			int status = pstmt.executeUpdate();
-			if(pstmt!=null)
-				pstmt.close();
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.delete.book"));
+			preparedStatement.setInt(1, courseId);
+			int status = preparedStatement.executeUpdate();
+			if(preparedStatement!=null)
+				preparedStatement.close();
 			
 			if(status>0){
-				boolean insertBookStatus = insertCourseBook(conn, courseId, booksList);
-				if(insertBookStatus){
-					conn.commit();
-					statusMessage ="Successfully updated the details";
+				String insertBookStatus = new BooksDAOImpl().addCourseBook(courseId, booksList);
+				if(insertBookStatus.equals(Constants.SUCCESS)){
+					connection.commit();
+					statusMessage = Constants.SUCCESS;
 				}
 			}
 		}catch(Exception exp){
 			try {
-				conn.rollback();
+				connection.rollback();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 			System.out.println("Exception occurred in updateCourseBook() "+exp.getMessage());
-			statusMessage = "An error occured while updating the details";
+			statusMessage = Constants.FAILURE;
 		}finally{
 			try {
-				conn.setAutoCommit(true);
+				connection.setAutoCommit(true);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			DBConnectionManager.close(conn, pstmt, null);
+			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
 	}

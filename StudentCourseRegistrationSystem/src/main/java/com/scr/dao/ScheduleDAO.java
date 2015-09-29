@@ -49,6 +49,12 @@ public interface ScheduleDAO {
 	 */
 	public String updateSchedule(ScheduleVO scheduleVo) ;
 
-
+	/**
+	 * Gets the course schedule
+	 * @param connection
+	 * @param courseId
+	 * @return List<ScheduleVO>
+	 */
+	public List<ScheduleVO> getCourseSchedule(int courseId);
 
 }

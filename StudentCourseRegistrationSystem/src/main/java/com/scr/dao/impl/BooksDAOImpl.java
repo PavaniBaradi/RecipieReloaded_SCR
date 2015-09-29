@@ -46,7 +46,6 @@ public class BooksDAOImpl implements BooksDAO{
 			preparedStatement.setString(1, bookName);
 			preparedStatement.executeUpdate();
 			connection.commit();
-			connection.setAutoCommit(true);
 			statusMessage = Constants.SUCCESS;
 		} catch (SQLException e) {
 			statusMessage = Constants.FAILURE;
@@ -66,6 +65,12 @@ public class BooksDAOImpl implements BooksDAO{
 			e.printStackTrace();
 			statusMessage = e.getMessage();
 		} finally {
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
@@ -175,7 +180,7 @@ public class BooksDAOImpl implements BooksDAO{
 			preparedStatement.executeUpdate();
 			statusMessage = Constants.SUCCESS;
 			connection.commit();
-			connection.setAutoCommit(true);
+			
 		} catch (Exception exp) {
 			statusMessage = Constants.FAILURE;
 			try {
@@ -185,6 +190,11 @@ public class BooksDAOImpl implements BooksDAO{
 			}
 			exp.printStackTrace();
 		} finally {
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
@@ -212,7 +222,6 @@ public class BooksDAOImpl implements BooksDAO{
 			// Executing the delete operation
 			preparedStatement.executeUpdate();
 			connection.commit();
-			connection.setAutoCommit(true);
 			statusMessage = Constants.SUCCESS;
 		} catch (SQLException e) {
 			statusMessage = Constants.FAILURE;
@@ -231,6 +240,98 @@ public class BooksDAOImpl implements BooksDAO{
 			}
 			e.printStackTrace();
 		} finally {
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			DBConnectionManager.close(connection, preparedStatement, null);
+		}
+		return statusMessage;
+	}
+	
+	/**
+	 * Gets the Course Books
+	 * @param connection
+	 * @param courseId
+	 * @return List<String>
+	 */
+	public List<BookVO> getCourseBooks(int courseId) {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		List<BookVO> booksList = null;
+		Connection connection = null;
+		
+		try{
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.get.books"));
+			preparedStatement.setInt(1, courseId);
+			resultSet = preparedStatement.executeQuery();
+			booksList =new ArrayList<BookVO>();
+			while(resultSet.next()){
+				booksList.add(new BookVO(Constants.BOOK_NAME));
+			}
+			connection.setAutoCommit(true);
+		}catch(SQLException sqlExp){
+			System.out.println("SQLException occurred in getCourseBooks() " + sqlExp.getMessage());
+		}catch(Exception exp){
+			System.out.println("Exception occurred in getCourseBooks() "+exp.getMessage());
+		}finally{
+			DBConnectionManager.close(connection, preparedStatement, resultSet);
+		}
+		return booksList;
+	}
+	
+	/**
+	 * Inserts books for a course
+	 * @param connection
+	 * @param courseId
+	 * @param booksList
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public String addCourseBook(int courseId, List<BookVO> booksList) throws Exception {
+		 PreparedStatement preparedStatement = null;
+		 String statusMessage = null;
+		 Connection connection = null;
+		try{
+			connection = DBConnectionManager.getConnection();
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.insert.book"));
+			for(BookVO bookVO : booksList){
+				preparedStatement.setInt(1, courseId);
+				preparedStatement.setInt(2, bookVO.getBookID());
+			    preparedStatement.addBatch();
+			}
+			int count[] = preparedStatement.executeBatch();
+			connection.commit();
+			if(count.length > 0)
+				statusMessage = Constants.SUCCESS;
+		}catch(SQLException sqlExp){
+			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			System.out.println("SQLException occurred in insertCourseBook() " + sqlExp.getMessage());
+		}catch(Exception exp){
+			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			System.out.println("Exception occurred in insertCourseBook() "+exp.getMessage());
+			throw exp;
+		}finally{
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;

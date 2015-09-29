@@ -1,27 +1,30 @@
 package com.scr.dao;
 
 import java.util.List;
-import java.util.Map;
 
-import com.scr.vo.CourseInfoVO;
-import com.scr.vo.CourseVO;
+import com.scr.vo.BookVO;
+import com.scr.vo.CoursesVO;
+import com.scr.vo.CurriculumVO;
+import com.scr.vo.ScheduleVO;
 
 public interface CourseDAO {
 
-	List<CourseInfoVO> listAllCourse();
+	public List<CoursesVO> listAllCourse();
 
-	Map<String, Object> getCourseDetails(int courseId);
+	public CoursesVO getCourseDetails(int courseId);
 	
-	String disableCourse(int courseId);
+	public String disableCourse(int courseId);
 	
-	String addCourse(CourseVO courseVo);
+	public String enableCourse(int courseId);
 	
-	String updateCourseInfo(int courseId, CourseInfoVO courseInfoVo);
+	public String addCourse(CoursesVO courseVo);
 	
-	String updateCourseSchedule(int courseId,  List<Integer> courseSchList);
+	public String updateCourseInfo(CoursesVO courseVO);
 	
-	String updateCourseCurriculum(int courseId, List<Integer> curriculumList);
+	public String updateCourseSchedule(int courseId,  List<ScheduleVO> courseSchList);
 	
-	String updateCourseBook(int courseId, List<Integer> booksList);
+	public String updateCourseCurriculum(int courseId, List<CurriculumVO> curriculumList);
+	
+	public String updateCourseBook(int courseId, List<BookVO> booksList);
 
 }
