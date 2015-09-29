@@ -433,8 +433,10 @@ private Properties dbQueries = PropertyLoader.getDbProperties();
 	
 	/**
 	 * Updates the Course information
+	 * @param courseId,
+	 * @param courseInfoVo
+	 * @return String
 	 *
-	 */
 
 	public String updateCourseInfo(int courseId, CourseInfoVO courseInfoVo) {
 		
@@ -464,7 +466,10 @@ private Properties dbQueries = PropertyLoader.getDbProperties();
 	
 	/**
 	 * Updates the course schedule
-	 */
+	  * @param courseId,
+	 * @param courseSchList
+	 * @return String
+	 *
 	public String updateCourseSchedule(int courseId, List<Integer> courseSchList) {
 		
 		Connection conn = null;
@@ -505,9 +510,12 @@ private Properties dbQueries = PropertyLoader.getDbProperties();
 		return statusMessage;
 	}
 
-/**
- * Updates the course curriculum
- */
+	/**
+	 * Updates the course curriculum
+	 * @param courseId,
+	 * @param curriculumList
+	 * @return String
+ 	*/
 	public String updateCourseCurriculum(int courseId, List<Integer> curriculumList) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -549,6 +557,9 @@ private Properties dbQueries = PropertyLoader.getDbProperties();
 
 	/**
 	 * Updates the course book
+	 * @param courseId,
+	 * @param booksList
+	 * @return String
 	 */
 	public String updateCourseBook(int courseId, List<Integer> booksList) {
 		Connection conn = null;
