@@ -21,4 +21,5 @@ public class Constants {
 	public static final String USER_ADMIN="Admin";
 	public static final String USER_FLAG ="user_flag";
 	public static final String TOPIC_NAME = "TOPIC_NAME";
+	public static final String BOOK_NAME = "BOOK_NAME";
 }

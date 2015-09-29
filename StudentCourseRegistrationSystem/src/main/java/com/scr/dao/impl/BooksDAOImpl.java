@@ -1,151 +1,145 @@
 package com.scr.dao.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import com.scr.dao.BooksDAO;
+import com.scr.util.Constants;
 import com.scr.util.DBConnectionManager;
+import com.scr.util.PropertyLoader;
+import com.scr.vo.BookVO;
 
-public class BooksDAOImpl {
+public class BooksDAOImpl implements BooksDAO{
+
+	private Properties dbQueries = PropertyLoader.getDbProperties();
+
 	/**
 	 * This method adds book details to BOOKS table
 	 * 
 	 * @param bookName - bookName gives the name of the book
 	 * @return - returns status message
 	 * @throws SQLException 
-	 * @throws IOException 
 	 */
-	public String addBook(String bookName) throws SQLException, IOException{
+	public String addBook(BookVO bookVO){
 
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		Properties prop = new Properties();
-    	InputStream inputStream= getClass().getClassLoader().getResourceAsStream("dbqueries.properties");
-    	if (inputStream != null) {
-			prop.load(inputStream);
-    	}
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		String bookName = bookVO.getBookName();
+
 		String statusMessage = "Error occurred while adding the book";
 		try {
 			// Connection to the database
-			conn = DBConnectionManager.getConnection();
+			connection = DBConnectionManager.getConnection();
 			// Setting auto commit to false to avoid committing of data immediately after executing
-			conn.setAutoCommit(false);
-			boolean bookExists = checkbookExists(conn, bookName);
+			connection.setAutoCommit(false);
+			boolean bookExists = checkbookExists(connection, bookName);
 			if (bookExists)
 				throw new Exception("Book " + bookName + " already exists");
 
-			pstmt = conn.prepareStatement(prop.getProperty("add.book"));
-			pstmt.setString(1, bookName);
-			pstmt.executeUpdate();
-			statusMessage = "Successfully added the book";
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("add.book"));
+			preparedStatement.setString(1, bookName);
+			preparedStatement.executeUpdate();
+			connection.commit();
+			connection.setAutoCommit(true);
+			statusMessage = Constants.SUCCESS;
 		} catch (SQLException e) {
+			statusMessage = Constants.FAILURE;
 			e.printStackTrace();
 		} catch (Exception e) {
+			statusMessage = Constants.FAILURE;
 			e.printStackTrace();
 			statusMessage = e.getMessage();
 		} finally {
-			    conn.setAutoCommit(true);
-				DBConnectionManager.close(conn, pstmt, null);
+			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
 	}
-	
+
 	/**
 	 * This method checks if book already exists or not
-	 * @param conn
+	 * @param connection
 	 * @param bookName
 	 * @return boolean value
 	 * @throws SQLException 
 	 * @throws IOException 
 	 */
-	private boolean checkbookExists(Connection conn, String bookName) throws SQLException, IOException {
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		Properties prop = new Properties();
-    	InputStream inputStream= getClass().getClassLoader().getResourceAsStream("dbqueries.properties");
-    	if (inputStream != null) {
-			prop.load(inputStream);
-    	}
+	private boolean checkbookExists(Connection connection, String bookName) {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
 		boolean bookExists = false;
 		int count = 0;
 		try {
 			// Setting auto commit to false to avoid committing of data immediately after executing
-			conn.setAutoCommit(false);
-			pstmt = conn.prepareStatement(prop.getProperty("check.book.name"));
-			pstmt.setString(1, bookName);
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("check.book.name"));
+			preparedStatement.setString(1, bookName);
 
-			rs = pstmt.executeQuery();
+			resultSet = preparedStatement.executeQuery();
 
-			while (rs.next()) {
-				count = rs.getInt(1);
+			while (resultSet.next()) {
+				count = resultSet.getInt(1);
 			}
 
 			System.out.println("count = " + count);
 			if (count > 0) {
 				bookExists = true;
 			}
+			connection.setAutoCommit(true);
 		} catch (Exception exp) {
 			System.out.println("Error : " + exp);
 		} finally {
-			conn.setAutoCommit(true);
-			DBConnectionManager.close(null, pstmt, rs);
+			DBConnectionManager.close(null, preparedStatement, resultSet);
 		}
 		System.out.println("bookExists ===== > " + bookExists);
 		return bookExists;
 
 	}
-	
+
 	/**
 	 * This method lists all the books 
 	 * @return - returns books list
 	 * @throws SQLException 
-	 * @throws IOException 
 	 */
-	public List<String> getBooksList() throws SQLException, IOException {
-		String book_name = null;
-        Connection conn = null;
-    	Statement stmt = null;
-		ResultSet rs = null;
-		Properties prop = new Properties();
-    	InputStream inputStream= getClass().getClassLoader().getResourceAsStream("dbqueries.properties");
-    	if (inputStream != null) {
-			prop.load(inputStream);
-    	}
-		 List<String> books_list = new ArrayList<String>();
+	public List<BookVO> getBooksList() {
+		String bookName = null;
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
+		List<BookVO> booksList = new ArrayList<BookVO>();
 		try{
 			// Connection to the database
-			conn = DBConnectionManager.getConnection();
+			connection = DBConnectionManager.getConnection();
 			// Setting auto commit to false to avoid committing of data immediately after executing
-			conn.setAutoCommit(false);
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(prop.getProperty("fetch.books.list"));
-			while(rs.next())
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("fetch.books.list"));
+			resultSet = preparedStatement.executeQuery();
+
+			while(resultSet.next())
 			{
-				book_name = rs.getString("book_name");
-							
+				bookName = resultSet.getString(Constants.BOOK_NAME);		
 				//Insertion
-				books_list.add(book_name);
-				
-				//Printing
-				System.out.println("The list of books:" +books_list);
-	 			}
-		 } catch(Exception e){
-			 System.out.println("Error occured while getting the details" +e.getMessage());
-		 }
-		 finally {
-			 conn.setAutoCommit(true);
-			 DBConnectionManager.close(conn, stmt, rs);
-		 }
-		return books_list;
+				booksList.add(new BookVO(bookName));
+			}
+			//Printing
+			System.out.println("The list of books:" +booksList);
+			connection.setAutoCommit(true);
+		} catch(Exception e){
+			System.out.println("Error occured while getting the details" +e.getMessage());
+		}
+		finally {
+			DBConnectionManager.close(connection, preparedStatement, resultSet);
+		}
+		return booksList;
 	}
-	
+
 	/**
 	 * This method updates the book name
 	 * @param book_name
@@ -154,72 +148,66 @@ public class BooksDAOImpl {
 	 * @throws SQLException 
 	 * @throws IOException 
 	 */
-	public String updateBookName(String book_name,int book_id) throws SQLException, IOException {
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		String statusMessage="";
-		Properties prop = new Properties();
-    	InputStream inputStream= getClass().getClassLoader().getResourceAsStream("dbqueries.properties");
-    	if (inputStream != null) {
-			prop.load(inputStream);
-    	}
+	public String updateBookName(BookVO bookVO) {
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		String statusMessage=null;
+
 		try {
 			// Connection to the database
-			conn = DBConnectionManager.getConnection();
+			connection = DBConnectionManager.getConnection();
 			// Setting auto commit to false to avoid committing of data immediately after executing
-			conn.setAutoCommit(false);
-			pstmt = conn.prepareStatement(prop.getProperty("update.book.name"));
+			connection.setAutoCommit(false);
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("update.book.name"));
 
-			pstmt.setString(1, book_name);
-			pstmt.setInt(2, book_id );
-			pstmt.executeUpdate();
-            statusMessage = "Successfully updated the book name";
-
+			preparedStatement.setString(1, bookVO.getBookName());
+			preparedStatement.setInt(2, bookVO.getBookID() );
+			preparedStatement.executeUpdate();
+			statusMessage = Constants.SUCCESS;
+			connection.commit();
+			connection.setAutoCommit(true);
 		} catch (Exception exp) {
-			statusMessage = exp.getMessage();
+			statusMessage = Constants.FAILURE;
 		} finally {
-			conn.setAutoCommit(true);
-			DBConnectionManager.close(conn, pstmt, null);
+			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
 	}
-	
+
 	/**
 	 * This method deletes the book
 	 * @param bookName - bookName gives the name of the book
 	 * @return - statusMessage and deletes the book
 	 * @throws - Exception
 	 */
-	public String deleteBook(String book_name) throws Exception {
-		Connection conn = null;
-    	PreparedStatement pstmt = null;
-    	String statusMessage = "";
-    	Properties prop = new Properties();
-    	InputStream inputStream= getClass().getClassLoader().getResourceAsStream("dbqueries.properties");
-    	if (inputStream != null) {
-			prop.load(inputStream);
-    	}
-		 try{
-			    // Connection to the database
-				conn = DBConnectionManager.getConnection();
-				// Setting auto commit to false to avoid committing of data immediately after executing
-				conn.setAutoCommit(false);
-				
-				pstmt = conn.prepareStatement(prop.getProperty("delete.book"));
-				pstmt.setString(1, book_name);
-				
-				// Executing the delete operation
-				pstmt.executeUpdate();
-				statusMessage = "Book successfully deleted";
-		 } catch (SQLException e) {
-			 statusMessage = e.getMessage();
-		 } finally {
-			    conn.setAutoCommit(true);
-				DBConnectionManager.close(conn, pstmt, null);
+	public String deleteBook(BookVO bookVO) {
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		String statusMessage = null;
+		try{
+			// Connection to the database
+			connection = DBConnectionManager.getConnection();
+			// Setting auto commit to false to avoid committing of data immediately after executing
+			connection.setAutoCommit(false);
+
+			preparedStatement = connection.prepareStatement(dbQueries.getProperty("delete.book"));
+			preparedStatement.setString(1, bookVO.getBookName());
+
+			// Executing the delete operation
+			preparedStatement.executeUpdate();
+			connection.commit();
+			connection.setAutoCommit(true);
+			statusMessage = Constants.SUCCESS;
+		} catch (SQLException e) {
+			statusMessage = Constants.FAILURE;
+		} catch (Exception e) {
+			statusMessage = Constants.FAILURE;
+		} finally {
+			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
 	}
-   
+
 }
 
 
