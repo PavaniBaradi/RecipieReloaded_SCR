@@ -2,6 +2,7 @@ package com.scr.vo;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.util.List;
 
 
 public class ScheduleVO {
@@ -10,8 +11,8 @@ public class ScheduleVO {
 	private Date endDate;
 	private Time startTime;
 	private Time endTime;
-	
-	
+	List<String> daysOfWeek;
+
 	/**
 	 * @param startDate
 	 * @param endDate
@@ -25,7 +26,43 @@ public class ScheduleVO {
 		this.startTime = startTime;
 		this.endTime = endTime;
 	}
-	
+
+	public ScheduleVO(Date startDate, Date endDate, Time startTime, Time endTime, List<String> daysOfWeek) {
+		super();
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.daysOfWeek = daysOfWeek;
+	}
+	/**
+	 * @param scheduleId
+	 * @param startDate
+	 * @param endDate
+	 * @param startTime
+	 * @param endTime
+	 * @param daysOfWeek
+	 */
+	public ScheduleVO(int scheduleId, Date startDate, Date endDate, Time startTime, Time endTime,
+			List<String> daysOfWeek) {
+		super();
+		this.scheduleId = scheduleId;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.daysOfWeek = daysOfWeek;
+	}
+
+	public boolean isDayExists(String day) {
+		Boolean isDayExists = false;
+		for (String dayOfWeek : daysOfWeek) {
+			if (dayOfWeek.equalsIgnoreCase(day))
+				isDayExists = true;
+		}
+		return isDayExists;
+	}
+
 	/**
 	 * 
 	 */
@@ -112,6 +149,20 @@ public class ScheduleVO {
 		this.endTime = endTime;
 	}
 
+	/**
+	 * @return the daysOfWeek
+	 */
+	public List<String> getDaysOfWeek() {
+		return daysOfWeek;
+	}
+
+	/**
+	 * @param daysOfWeek the daysOfWeek to set
+	 */
+	public void setDaysOfWeek(List<String> daysOfWeek) {
+		this.daysOfWeek = daysOfWeek;
+	}
+
 	
-	
+
 }

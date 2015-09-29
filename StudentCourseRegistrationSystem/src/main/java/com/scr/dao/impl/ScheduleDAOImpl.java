@@ -48,6 +48,13 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			preparedStatement.setDate(++index,new java.sql.Date(scheduleVo.getEndDate().getTime()));
 			preparedStatement.setTime(++index,scheduleVo.getStartTime());
 			preparedStatement.setTime(++index,scheduleVo.getEndTime());
+			preparedStatement.setBoolean(++index,scheduleVo.isDayExists("Monday"));
+			preparedStatement.setBoolean(++index,scheduleVo.isDayExists("Tuesday"));
+			preparedStatement.setBoolean(++index,scheduleVo.isDayExists("Wednesday"));
+			preparedStatement.setBoolean(++index,scheduleVo.isDayExists("Thursday"));
+			preparedStatement.setBoolean(++index,scheduleVo.isDayExists("Friday"));
+			preparedStatement.setBoolean(++index,scheduleVo.isDayExists("Saturday"));
+			preparedStatement.setBoolean(++index,scheduleVo.isDayExists("Sunday"));
 			System.out.println("Inserting schedule using DDL statement "+preparedStatement.toString());
 
 			//execute the insert statement
@@ -169,7 +176,6 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 		int count = 0;
 		Boolean scheduleOfCourseExists = false;
 		try {
-			connection.setAutoCommit(false);
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("check.schedule.course"));
 			preparedStatement.setInt(1, scheduleID);
 
@@ -181,7 +187,6 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			if (count > 0) {
 				scheduleOfCourseExists = true;
 			}
-			connection.setAutoCommit(true);
 		}catch (Exception exp) {
 			System.out.println("Error : " + exp);
 		} finally {
@@ -206,21 +211,23 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 		Connection connection = null;
 		ResultSet resultSet = null;
 
-		int scheduleID = 0;
 		String statusMessage = null;
 
-		//Checks if the course for the scheduleID exists
-		if (checkScheduleOfCourseExists (connection, scheduleVo)) {
-			return "Schedule is associated with a course.. Cannot delete";
-		} else {
 			try {
 				connection = DBConnectionManager.getConnection();
 				connection.setAutoCommit(false);
+				//Checks if the course for the scheduleID exists
+				if (checkScheduleOfCourseExists (connection, scheduleVo)) {
+					return "Schedule is associated with a course.. Cannot delete";
+				}
 				//get connection to DB
 				preparedStatement = connection.prepareStatement(dbQueries.getProperty("drop.schedule"));
-				preparedStatement.setInt(1, scheduleID);
-				resultSet = preparedStatement.executeQuery();
+				preparedStatement.setInt(1, scheduleVo.getScheduleId());
+				int result = preparedStatement.executeUpdate();
+				if(result>0)
 				statusMessage = Constants.SUCCESS;
+				else
+					statusMessage = Constants.FAILURE;
 			}catch (Exception exp) {
 				statusMessage = Constants.FAILURE;
 				System.out.println("Error : " + exp);
@@ -238,7 +245,6 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 				}
 				DBConnectionManager.close(connection, preparedStatement, resultSet);
 			}  
-		}
 		return statusMessage;
 	}
 
@@ -322,7 +328,9 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			resultSet = preparedStatement.executeQuery();
 			courseSchedule =new ArrayList<ScheduleVO>();
 			while(resultSet.next()){
-				courseSchedule.add(new ScheduleVO(resultSet.getDate(Constants.START_DATE), resultSet.getDate(Constants.END_DATE), resultSet.getTime(Constants.START_TIME), resultSet.getTime(Constants.END_TIME)));
+				ScheduleVO scheduleVO = new ScheduleVO(resultSet.getDate(Constants.START_DATE), resultSet.getDate(Constants.END_DATE), resultSet.getTime(Constants.START_TIME), resultSet.getTime(Constants.END_TIME));
+				courseSchedule.add(scheduleVO);
+				System.out.println("Course Schedule for courseID: "+courseId+" "+scheduleVO.toString());
 			}
 
 		}catch(SQLException sqlExp){
@@ -359,7 +367,7 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			int count[] = preparedStatement.executeBatch();
 			if(count.length > 0)
 				statusMessage = Constants.SUCCESS;
-
+connection.commit();
 		}catch(SQLException sqlExp){
 			statusMessage = Constants.FAILURE;
 			try {
@@ -377,6 +385,12 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			}
 			System.out.println("Exception occurred in insertCourseSchedule() "+exp.getMessage());
 		}finally{
+			try {
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;

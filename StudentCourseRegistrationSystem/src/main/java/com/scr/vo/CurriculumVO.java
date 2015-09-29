@@ -11,6 +11,15 @@ public class CurriculumVO {
 	private int curriculumId;
 	private String topicName;
 	/**
+	 * @param curriculumId
+	 * @param topicName
+	 */
+	public CurriculumVO(int curriculumId, String topicName) {
+		super();
+		this.curriculumId = curriculumId;
+		this.topicName = topicName;
+	}
+	/**
 	 * @param topicName
 	 */
 	public CurriculumVO(String topicName) {

@@ -3,7 +3,6 @@ package com.scr.dao.impl;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -21,9 +20,10 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 
 	/**
 	 * This method lists all the curriculum details
-	 * @param Topic_Name
-	 * @return curriculumVO list
-	 */	
+	 * @param CurriculumVO
+	 * @return CurriculumVO object
+	 */
+	
 	public List<CurriculumVO> getAllCurriculum() {
 		PreparedStatement preparedStatement = null;
 		Connection connection = null;
@@ -41,20 +41,21 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 			resultSet = preparedStatement.executeQuery();
 			curriculumVOs = new ArrayList<CurriculumVO>();
 			while(resultSet.next()){
-				curriculumVOs.add(new CurriculumVO(resultSet.getString(Constants.TOPIC_NAME)));
+				curriculumVOs.add(new CurriculumVO(resultSet.getInt(Constants.CURRICULUM_ID),resultSet.getString(Constants.TOPIC_NAME)));
 			}	
 		}catch(Exception exp){
 			System.out.println("Error  : " + exp);
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, resultSet);
 		}
-		return curriculumVOs;
+		return curriculumVOs	;
 	}
 
 	/**
 	 * This method lists the curriculum details from the curriculum table
+	 * @param connection 
 	 * @param Topic Name
-	 * @return map
+	 * @return curriculumExists
 	 */	
 	private boolean checkCurriculumExists(Connection connection, String Topic_Name) {
 
@@ -139,7 +140,7 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 	 * This method inserts data into Curriculum table
 	 * @param curriculumId
 	 * @param topicName
-	 * @return statusmessage
+	 * @return status message
 	 */
 
 	public String addCurriculum(CurriculumVO curriculumVO){
@@ -161,7 +162,7 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("add.curriculum"));
 
 			//set curriculumId and topicName
-			preparedStatement.setString(2, curriculumVO.getTopicName());
+			preparedStatement.setString(1, curriculumVO.getTopicName());
 
 			//executing the insert query
 			int count=preparedStatement.executeUpdate();
@@ -172,12 +173,7 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 
 		} catch(Exception exp){
 			statusMessage = Constants.FAILURE;
-			try {
-				connection.rollback();
-			} catch (SQLException e1) {
-				System.out.println(statusMessage);
-			}
-			exp.printStackTrace();
+			System.out.println("Error : " + exp);
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
@@ -189,7 +185,7 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 	 * Inserts courseId and curriculum_id into course_curriculum table
 	 * @param courseId
 	 * @param curriculumList
-	 * @return  statusmessage
+	 * @return  status message
 	 */
 
 	public String addCourseCurriculum(int courseId, List<CurriculumVO> curriculumList){
@@ -220,12 +216,7 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 
 		} catch(Exception exp){
 			statusMessage = Constants.FAILURE;
-			try {
-				connection.rollback();
-			} catch (SQLException e1) {
-				System.out.println(statusMessage);
-			}
-			exp.printStackTrace();
+			System.out.println("Error : " + exp);
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
@@ -236,7 +227,7 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 	 * Updates the data in Curriculum table
 	 * @param curriculumId
 	 * @param topicName
-	 * @return String
+	 * @return status Message
 	 */
 	public String updateCurriculum(CurriculumVO curriculumVO){
 
@@ -262,12 +253,7 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 				statusMessage = Constants.SUCCESS;
 		}catch(Exception exp){
 			statusMessage = Constants.FAILURE;
-			try {
-				connection.rollback();
-			} catch (SQLException e1) {
-				System.out.println(statusMessage);
-			}
-			exp.printStackTrace();
+			System.out.println("Error : " + exp);
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
@@ -276,6 +262,7 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 	/**
 	 * deletes the data based on curriculumId in curriculum table
 	 * @param curriculumId
+	 * @return status Message
 	 */
 	public String deleteCurriculum(int curriculumId){
 
@@ -308,18 +295,12 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 
 		} catch(Exception exp){
 			statusMessage = Constants.FAILURE;
-			try {
-				connection.rollback();
-			} catch (SQLException e1) {
-				System.out.println(statusMessage);
-			}
-			exp.printStackTrace();
+			System.out.println("Error : " + exp);
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
 		return statusMessage;
 	}
-
 }
 
 

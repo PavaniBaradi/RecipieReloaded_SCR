@@ -12,7 +12,6 @@ public class DBConnectionManager {
 	private static Properties confProperties = PropertyLoader.getConfProperties();
 	
 	public static void initialize(){
-		System.out.println("initializing DB...");
 		connectionPool = new BasicDataSource(); 
 		connectionPool.setDriverClassName(confProperties.getProperty("db.driver"));
 		connectionPool.setUrl(confProperties.getProperty("db.url"));
@@ -31,9 +30,6 @@ public class DBConnectionManager {
 			initialize();
 		}
 		connection = connectionPool.getConnection();
-		System.out.println("DB initialized!!!");
-		System.out.println("Connections Idle "+connectionPool.getNumIdle());
-		System.out.println("Connections Active "+connectionPool.getNumActive());
 		return connection;
 	}
 
@@ -59,8 +55,6 @@ public class DBConnectionManager {
 		if (connection != null) {
 			try {
 				connection.close();
-				System.out.println("Connections Idle "+connectionPool.getNumIdle());
-				System.out.println("Connections Active "+connectionPool.getNumActive());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
