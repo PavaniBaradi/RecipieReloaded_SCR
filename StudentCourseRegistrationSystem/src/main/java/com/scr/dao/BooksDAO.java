@@ -43,5 +43,20 @@ public interface BooksDAO {
 	 * @return List<String>
 	 */
 	public List<BookVO> getCourseBooks(int courseId);
+	/**
+	 * Gets the Course Books
+	 * @param connection
+	 * @param courseId
+	 * @return List<String>
+	 */
+	 public String addCourseBook(int courseId, List<BookVO> booksList) ;
+	 /**
+	 * Inserts books for a course
+	 * @param connection
+	 * @param courseId
+	 * @param booksList
+	 * @return boolean
+	 * @throws Exception
+	 */
 	
 }
