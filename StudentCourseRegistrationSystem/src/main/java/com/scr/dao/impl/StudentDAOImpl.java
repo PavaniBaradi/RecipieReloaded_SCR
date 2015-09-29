@@ -46,8 +46,10 @@ public class StudentDAOImpl implements StudentsDAO{
 			boolean studentExists = checkStudentExists(connection, studentVO.getEmailId());
 
 			//Check if student already exists. If student exists throw exception saying student already exists
-			if (studentExists)
+			if (studentExists){
+				statusMessage = Constants.FAILURE;
 				throw new Exception("Student with emailId: " + studentVO.getEmailId() + " already exists");
+			}
 
 			//Prepare insert statement to insert student details using preparedStatement
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("add.student"));

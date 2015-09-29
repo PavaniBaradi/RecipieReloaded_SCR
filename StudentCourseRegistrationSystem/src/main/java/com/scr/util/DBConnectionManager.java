@@ -22,7 +22,7 @@ public class DBConnectionManager {
 		connectionPool.setValidationQuery(confProperties.getProperty("db.validation.query"));
 		connectionPool.setInitialSize(Integer.parseInt("5"));
 		connectionPool.setDefaultTransactionIsolation(2);
-		System.out.println("DB initialized!!!");
+		
 	}
 
 	public static Connection getConnection() throws Exception {
@@ -31,6 +31,7 @@ public class DBConnectionManager {
 			initialize();
 		}
 		connection = connectionPool.getConnection();
+		System.out.println("DB initialized!!!");
 		System.out.println("Connections Idle "+connectionPool.getNumIdle());
 		System.out.println("Connections Active "+connectionPool.getNumActive());
 		return connection;

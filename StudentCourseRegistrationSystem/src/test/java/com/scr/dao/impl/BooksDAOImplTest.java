@@ -9,7 +9,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.scr.dao.impl.BooksDAOImpl;
+import com.scr.vo.BookVO;
 
 public class BooksDAOImplTest {
 	private BooksDAOImpl booksDAOObj = null;
@@ -21,44 +21,44 @@ public class BooksDAOImplTest {
 	// Test case for getBooksList
 	@Test (enabled=false)
 	  public void getBooksList_Test() throws SQLException, IOException {
-		  List<String> bookslist = booksDAOObj.getBooksList();
+		  List<BookVO> bookslist = booksDAOObj.getBooksList();
 		  
-		  for(String bookVO : bookslist){
-			  System.out.println("book name : " +bookVO);
+		  for(BookVO bookVO : bookslist){
+			  System.out.println("book name : " +bookVO.getBookName());
 		  }
 	  }
 	
 	// Test case for addBook
 	@DataProvider(name="Book_names")
 	  public Object[][] addBook_dp() {
-	    return new Object[][] {
-	      new Object[] { "ESP by Rakesh Ranjan", "Successfully added the book"},
-	      new Object[] { "jQuery Tutorial", "Successfully added the book"},
-	      new Object[] { "PERL Tutorial", "Successfully added the book"},
-	      new Object[] { "Java Tutorial", "Successfully added the book"},
-	     
+		
+		return new Object[][] {	
+	      new Object[] {new BookVO("Hive"),"success"},
+	      new Object[] {new BookVO("TestNG Tutorial"),"success"}
 	    };
 	  }
 
 	  @Test(dataProvider="Book_names", enabled=false)
-	  public void addBook_Test(String bookName, String expectedStatusMessage) throws SQLException, IOException {
+	  public void addBook_Test(BookVO bookVO, String expectedStatusMessage) throws SQLException {
 		 
-		  String actualStatusMessage = booksDAOObj.addBook(bookName);
+		  String actualStatusMessage = "";
+		  actualStatusMessage = booksDAOObj.addBook(bookVO);
 		  Assert.assertEquals(actualStatusMessage, expectedStatusMessage);
 	  }
 	  
 	  // Test case for updateBookName
-	  @DataProvider(name="Update_Book_names")
+	 @DataProvider(name="Update_Book_names")
 	  public Object[][] updateBook_dp() {
 	    return new Object[][] {
-	      new Object[] { "ESP by Prof.Ahmad Nouri",8, "Successfully updated the book name"},
-	      new Object[] { "jQuery",9,"Successfully updated the book name"},
+	      new Object[] { new BookVO(8,"ESP by Prof.Nouri"), "success"},
+	      new Object[] { new BookVO(10,"jQuery Tutorial"),"success"},
 	    };
 	  } 
+
 	  @Test(dataProvider="Update_Book_names", enabled=false)
-	  public void updateBookName_Test(String bookName,int book_id,String expectedStatusMessage) throws SQLException, IOException {
+	  public void updateBookName_Test(BookVO bookVO,String expectedStatusMessage) throws SQLException, IOException {
 		 
-		  String actualStatusMessage = booksDAOObj.updateBookName(bookName,book_id);
+		  String actualStatusMessage = booksDAOObj.updateBookName(bookVO);
 		  Assert.assertEquals(actualStatusMessage, expectedStatusMessage);
 	  }
 	  
@@ -66,15 +66,15 @@ public class BooksDAOImplTest {
 	  @DataProvider(name="Delete_Book")
 	  public Object[][] deleteBook_dp() {
 	    return new Object[][] {
-	      new Object[] { "jQuery", "Book successfully deleted"},	     
+	      new Object[] { new BookVO("jQuery Tutorial"), "success"},	     
 	    };
 	  }
 
-	  @Test(dataProvider="Delete_Book", enabled=true)
-	  public void deleteBook_Test(String bookName, String expectedStatusMessage) throws Exception {
+	  @Test(dataProvider="Delete_Book", enabled=false)
+	  public void deleteBook_Test(BookVO bookVO, String expectedStatusMessage) throws Exception {
 		 
-		  String actualStatusMessage = booksDAOObj.deleteBook(bookName);
+		  String actualStatusMessage = booksDAOObj.deleteBook(bookVO);
 		  Assert.assertEquals(actualStatusMessage, expectedStatusMessage);
 	  }
-	  
+
 }

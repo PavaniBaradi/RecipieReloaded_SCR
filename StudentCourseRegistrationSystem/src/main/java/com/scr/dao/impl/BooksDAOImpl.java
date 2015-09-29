@@ -92,7 +92,6 @@ public class BooksDAOImpl implements BooksDAO{
 		int count = 0;
 		try {
 			// Setting auto commit to false to avoid committing of data immediately after executing
-			connection.setAutoCommit(false);
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("check.book.name"));
 			preparedStatement.setString(1, bookName);
 
@@ -106,7 +105,6 @@ public class BooksDAOImpl implements BooksDAO{
 			if (count > 0) {
 				bookExists = true;
 			}
-			connection.setAutoCommit(true);
 		} catch (Exception exp) {
 			System.out.println("Error : " + exp);
 		} finally {
@@ -133,7 +131,7 @@ public class BooksDAOImpl implements BooksDAO{
 			// Connection to the database
 			connection = DBConnectionManager.getConnection();
 			// Setting auto commit to false to avoid committing of data immediately after executing
-			connection.setAutoCommit(false);
+			
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("fetch.books.list"));
 			resultSet = preparedStatement.executeQuery();
 
@@ -145,7 +143,7 @@ public class BooksDAOImpl implements BooksDAO{
 			}
 			//Printing
 			System.out.println("The list of books:" +booksList);
-			connection.setAutoCommit(true);
+			
 		} catch(Exception e){
 			System.out.println("Error occured while getting the details" +e.getMessage());
 		}
@@ -265,7 +263,7 @@ public class BooksDAOImpl implements BooksDAO{
 		
 		try{
 			connection = DBConnectionManager.getConnection();
-			connection.setAutoCommit(false);
+			
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("course.get.books"));
 			preparedStatement.setInt(1, courseId);
 			resultSet = preparedStatement.executeQuery();
@@ -273,7 +271,7 @@ public class BooksDAOImpl implements BooksDAO{
 			while(resultSet.next()){
 				booksList.add(new BookVO(Constants.BOOK_NAME));
 			}
-			connection.setAutoCommit(true);
+			
 		}catch(SQLException sqlExp){
 			System.out.println("SQLException occurred in getCourseBooks() " + sqlExp.getMessage());
 		}catch(Exception exp){

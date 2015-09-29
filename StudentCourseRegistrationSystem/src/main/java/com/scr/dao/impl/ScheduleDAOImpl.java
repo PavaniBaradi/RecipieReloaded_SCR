@@ -344,7 +344,7 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 	 * @throws Exception
 	 */
 
-	public String addCourseSchedule(int courseId, List<ScheduleVO> scheduleVOs) throws Exception {
+	public String addCourseSchedule(int courseId, List<ScheduleVO> scheduleVOs){
 		PreparedStatement preparedStatement = null;
 		String statusMessage = null;
 		Connection connection = null;
@@ -376,7 +376,6 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 				System.out.println(statusMessage);
 			}
 			System.out.println("Exception occurred in insertCourseSchedule() "+exp.getMessage());
-			throw exp;
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}

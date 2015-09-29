@@ -3,7 +3,6 @@
  */
 package com.scr.util;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -23,10 +22,17 @@ public abstract class PropertyLoader {
 
 		try {
 			dbProperties = new Properties();
-			FileInputStream inputStream = new FileInputStream("dbqueries.properties");
+			//String current = new java.io.File( "." ).getCanonicalPath();
+		    //System.out.println("Current dir:"+current);
+		    //String currentDir = System.getProperty("user.dir");
+		   // System.out.println(PropertyLoader.class.get);
+		    dbProperties = new Properties(); 
+		    dbProperties.load(PropertyLoader.class.getResourceAsStream("/dbqueries.properties"));
+			/*FileInputStream inputStream = new FileInputStream("src/main/resources/dbqueries.properties");
+			System.out.println("["+inputStream+"]");
 			dbProperties.load(inputStream);
 			System.out.println("db queries properties loaded");
-			inputStream.close();
+			inputStream.close();*/
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -44,10 +50,7 @@ public abstract class PropertyLoader {
 
 		try {
 			confProperties = new Properties();
-			FileInputStream inputStream = new FileInputStream("conf.properties");
-			confProperties.load(inputStream);
-			System.out.println("conf properties loaded");
-			inputStream.close();
+			confProperties.load(PropertyLoader.class.getResourceAsStream("/conf.properties"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

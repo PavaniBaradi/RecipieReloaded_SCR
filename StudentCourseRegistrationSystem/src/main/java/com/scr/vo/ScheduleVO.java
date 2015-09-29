@@ -27,6 +27,29 @@ public class ScheduleVO {
 	}
 	
 	/**
+	 * 
+	 */
+	public ScheduleVO() {
+		super();
+	}
+
+	/**
+	 * @param scheduleId
+	 * @param startDate
+	 * @param endDate
+	 * @param startTime
+	 * @param endTime
+	 */
+	public ScheduleVO(int scheduleId, Date startDate, Date endDate, Time startTime, Time endTime) {
+		super();
+		this.scheduleId = scheduleId;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.startTime = startTime;
+		this.endTime = endTime;
+	}
+
+	/**
 	 * @return the scheduleId
 	 */
 	public int getScheduleId() {

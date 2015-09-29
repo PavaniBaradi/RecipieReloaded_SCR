@@ -17,6 +17,10 @@ public class BookVO {
 		super();
 		this.bookName = bookName;
 	}
+	public BookVO(int bookID, String bookName) {
+		this.bookID = bookID;
+		this.bookName = bookName;
+	}
 	/**
 	 * @return the bookID
 	 */

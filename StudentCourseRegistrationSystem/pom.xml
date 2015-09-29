@@ -23,12 +23,41 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4</version>
-			</plugin>
+			
+			 <plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-shade-plugin</artifactId>
+		        <version>1.6</version>
+		        <executions>
+		          <execution>
+		            <phase>package</phase>
+		            <goals>
+		              <goal>shade</goal>
+		            </goals>
+		            <configuration>
+		              <transformers>
+		                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+		                 	<mainClass>com.scr.client.SCRMain</mainClass>
+		                </transformer>
+		              </transformers>
+		            </configuration>
+		          </execution>
+		        </executions>
+		      </plugin>
+			
+			
 		</plugins>
+		<resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <includes>                      
+                <include>**/*.*</include>
+            </includes>
+        </resource>
+        <resource>
+            <directory>src/main/resources</directory>
+        </resource>
+    </resources>
 	</build>
 
 	<dependencyManagement>
@@ -59,12 +88,7 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.glassfish.jersey.containers</groupId>
-			<artifactId>jersey-container-servlet-core</artifactId>
-			<!-- use the following artifactId if you don't need servlet 2.x compatibility -->
-			<!-- artifactId>jersey-container-servlet</artifactId -->
-		</dependency>
+
 		<!-- uncomment this to get JSON support <dependency> <groupId>org.glassfish.jersey.media</groupId> 
 			<artifactId>jersey-media-moxy</artifactId> </dependency> -->
 		<dependency>

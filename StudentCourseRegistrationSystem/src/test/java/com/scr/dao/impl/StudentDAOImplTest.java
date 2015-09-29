@@ -21,9 +21,9 @@ public class StudentDAOImplTest {
 	}
 
 
-	@Test(dataProvider="createStudent_dp", enabled=true)
+	@Test(dataProvider="createStudent_dp", enabled=false)
 	public void createStudent(String firstName, String lastName, String emailId, String password,  String expectedMessage) {
-		StudentVO studentVO = new StudentVO(0, firstName, lastName, emailId, password,null);
+		StudentVO studentVO = new StudentVO(0, firstName, lastName, emailId, password,Constants.USER_STUDENT);
 		String actualMessage = studentDAOObj.createStudent(studentVO);
 		Assert.assertEquals(actualMessage, expectedMessage);
 	}
@@ -32,9 +32,9 @@ public class StudentDAOImplTest {
 	public Object[][] createStudent_dp() {
 
 		return new Object[][] {
-			new Object[] { "Harika", "M" , "mharika@gmail.com", "mharika", Constants.SUCCESS},
-			new Object[] { "vidya", "ks" , "vks@gmail.com", "aasdh", Constants.SUCCESS},	      
-			new Object[] { "Pavani", "Baradi" , "pbaradi@gmail.com", "passwordBaradi1", Constants.SUCCESS}
+			new Object[] { "Harika", "M" , "mharika@gmail.com", "mharika", Constants.FAILURE},
+			new Object[] { "vidya", "ks" , "vks@gmail.com", "aasdh", Constants.FAILURE},	      
+			new Object[] { "Pavani", "Baradi" , "pbaradi@gmail.com", "passwordBaradi1", Constants.FAILURE}
 		};
 	}
 
@@ -159,6 +159,16 @@ public class StudentDAOImplTest {
 		if(studentVO!=null){
 			System.out.println("Login successful. Student Details are "+studentVO.toString());
 		}
+	}
+	
+	@DataProvider
+	public Object[][] login_dp() {
+
+		return new Object[][] {
+			new Object[] { "mharika@gmail.com", "mharika", Constants.SUCCESS},
+			new Object[] { "vks@gmail.com", "aasdh", Constants.SUCCESS},	      
+			new Object[] { "pbaradi@gmail.com", "passwordBaradi1", Constants.SUCCESS}
+		};
 	}
 
 }

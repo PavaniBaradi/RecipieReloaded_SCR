@@ -186,7 +186,7 @@ public class CourseDAOImplTest {
 	  }
 	  
 	  
-	  @Test(dataProvider="updateCourseBook_dp", enabled=true)
+	  @Test(dataProvider="updateCourseBook_dp", enabled=false)
 	  public void updateCourseBook_Test(int courseID, List<Integer> courseSchList, String expectedMessage){
 		 
 		  String actualStatusMessage= courseDAOObj.updateCourseBook(courseID, courseSchList);
