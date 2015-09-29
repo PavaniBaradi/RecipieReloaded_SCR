@@ -2,7 +2,6 @@
  * 
  */
 package com.scr.dao;
-import java.sql.Connection;
 import java.util.List;
 
 import com.scr.vo.ScheduleVO;
@@ -40,7 +39,7 @@ public interface ScheduleDAO {
 	 * @return
 	 *           -Message to confirm if the schedule is deleted or not   
 	 */
-	public String deleteSchedule (Connection connection, ScheduleVO scheduleVo); 
+	public String deleteSchedule (ScheduleVO scheduleVo); 
 
 
 	/**
@@ -48,7 +47,7 @@ public interface ScheduleDAO {
 	 * @param scheduleVo Object contains student details that has to be updated
 	 * @return status message stating success or failure
 	 */
-	public String updateSchedule(ScheduleVO scheduleVo, ScheduleVO newScheduleVO) ;
+	public String updateSchedule(ScheduleVO scheduleVo) ;
 
 
 

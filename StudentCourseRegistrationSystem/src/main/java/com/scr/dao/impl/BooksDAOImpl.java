@@ -50,9 +50,19 @@ public class BooksDAOImpl implements BooksDAO{
 			statusMessage = Constants.SUCCESS;
 		} catch (SQLException e) {
 			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
 			e.printStackTrace();
 		} catch (Exception e) {
 			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
 			e.printStackTrace();
 			statusMessage = e.getMessage();
 		} finally {
@@ -168,6 +178,12 @@ public class BooksDAOImpl implements BooksDAO{
 			connection.setAutoCommit(true);
 		} catch (Exception exp) {
 			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			exp.printStackTrace();
 		} finally {
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
@@ -200,8 +216,20 @@ public class BooksDAOImpl implements BooksDAO{
 			statusMessage = Constants.SUCCESS;
 		} catch (SQLException e) {
 			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			e.printStackTrace();
 		} catch (Exception e) {
 			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			e.printStackTrace();
 		} finally {
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}

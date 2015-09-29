@@ -427,10 +427,21 @@ public class StudentDAOImpl implements StudentsDAO{
 			connection.setAutoCommit(true);
 			statusMessage = Constants.SUCCESS;
 		} catch (SQLException sqlexp) {
-			sqlexp.printStackTrace();
 			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			sqlexp.printStackTrace();
 		} catch (Exception e) {
 			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			e.printStackTrace();
 		} finally {
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
@@ -508,8 +519,19 @@ public class StudentDAOImpl implements StudentsDAO{
 		} catch (SQLException sqlexp) {
 			sqlexp.printStackTrace();
 			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
 		} catch (Exception e) {
 			statusMessage = Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			e.printStackTrace();
 		} finally {
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}

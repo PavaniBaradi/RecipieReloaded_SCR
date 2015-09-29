@@ -16,10 +16,6 @@ import com.scr.vo.ScheduleVO;
 
 public class ScheduleDAOImpl implements ScheduleDAO {
 	private Properties dbQueries = PropertyLoader.getDbProperties();
-	private PreparedStatement preparedStatement = null;
-	private ResultSet resultSet = null;
-	private Connection connection = null;
-
 
 	/**
 	 * This method adds schedule details to Schedule Table
@@ -30,7 +26,8 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 	 * @return statusMessage specifying success or failure 
 	 */
 	public String addSchedule(ScheduleVO scheduleVo){
-
+		PreparedStatement preparedStatement = null;
+		Connection connection = null;
 		int index = 0;
 		String statusMessage = null;
 
@@ -57,11 +54,15 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			int count = preparedStatement.executeUpdate();
 			connection.commit();
 			if(count>0)
-				statusMessage = "successfully added the schedule";
+				statusMessage = Constants.SUCCESS;
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			statusMessage="An error occurred while adding the schedule";
+			statusMessage=Constants.FAILURE;
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
@@ -75,6 +76,9 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 	 * @return List of schedule	
 	 */
 	public List<ScheduleVO> getAllSchedule(){
+		PreparedStatement preparedStatement = null;
+		Connection connection = null;
+		ResultSet resultSet = null;
 
 		List<ScheduleVO> scheduleList =null;
 		try {
@@ -113,6 +117,8 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 	private boolean checkScheduleExists(Connection connection, ScheduleVO scheduleVo) {
 		Boolean scheduleExists = false;
 		int count =0;
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
 		try {
 			//prepare query to check if schedule exists
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("check.schedule"));
@@ -142,35 +148,6 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 	}
 
 	/**
-	 * This method gets the scheduleID for the schedule
-	 * 
-	 * @param connection
-	 *              -- connection to create prepared statement
-	 * @return
-	 *              -scheduleID             
-	 */
-	private int getScheduleID (Connection connection, ScheduleVO scheduleVo) {
-		int scheduleID = 0;
-		try {
-
-			preparedStatement = connection.prepareStatement(dbQueries.getProperty("fetch.schedule.id"));
-			preparedStatement.setDate(1,new java.sql.Date(scheduleVo.getStartDate().getTime()));
-			preparedStatement.setDate(2,new java.sql.Date(scheduleVo.getEndDate().getTime()));
-			preparedStatement.setTime(3,scheduleVo.getStartTime());
-			preparedStatement.setTime(4,scheduleVo.getEndTime());
-
-			resultSet = preparedStatement.executeQuery();
-			while (resultSet.next()) 
-				scheduleID = resultSet.getInt("schedule_id");  
-		}  catch (Exception exp) {
-			System.out.println("Error : " + exp);
-		} finally {
-			DBConnectionManager.close(null, preparedStatement, resultSet);
-		}
-		return scheduleID;  
-	}
-
-	/**
 	 * This method checks if the course corresponding to the scheduleID exists
 	 * 
 	 * @param connection
@@ -179,15 +156,14 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 	 *           -true if the course exists for the scheduleID else False           
 	 */
 	private boolean checkScheduleOfCourseExists (Connection connection, ScheduleVO scheduleVo) {
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
 		int scheduleID = 0;
 		int count = 0;
 		Boolean scheduleOfCourseExists = false;
-		if (checkScheduleExists(connection, scheduleVo)) {
-			scheduleID = getScheduleID (connection, scheduleVo);  
-		} else {
-			return false;
-		}
 		try {
+			connection.setAutoCommit(false);
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("check.schedule.course"));
 			preparedStatement.setInt(1, scheduleID);
 
@@ -199,6 +175,7 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			if (count > 0) {
 				scheduleOfCourseExists = true;
 			}
+			connection.setAutoCommit(true);
 		}catch (Exception exp) {
 			System.out.println("Error : " + exp);
 		} finally {
@@ -218,35 +195,40 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 	 *           -Delete the schedule    
 	 */
 
-	public String deleteSchedule (Connection connection, ScheduleVO scheduleVo) {
+	public String deleteSchedule (ScheduleVO scheduleVo) {
+		PreparedStatement preparedStatement = null;
+		Connection connection = null;
+		ResultSet resultSet = null;
 
 		int scheduleID = 0;
-		String returnMessage = "";
-		//Checks if the schedule for the given scheduleID exists
-		if (checkScheduleExists(connection, scheduleVo)) {
-			scheduleID = getScheduleID (connection, scheduleVo);  
-		} else {
-			return "No such schedule exists";
-		}
+		String statusMessage = null;
 
 		//Checks if the course for the scheduleID exists
 		if (checkScheduleOfCourseExists (connection, scheduleVo)) {
 			return "Schedule is associated with a course.. Cannot delete";
 		} else {
 			try {
+				connection = DBConnectionManager.getConnection();
+				connection.setAutoCommit(false);
 				//get connection to DB
 				preparedStatement = connection.prepareStatement(dbQueries.getProperty("drop.schedule"));
 				preparedStatement.setInt(1, scheduleID);
 				resultSet = preparedStatement.executeQuery();
-
-				returnMessage = "Schedule Deleted";
+				statusMessage = Constants.SUCCESS;
+				connection.setAutoCommit(true);
 			}catch (Exception exp) {
+				statusMessage = Constants.FAILURE;
 				System.out.println("Error : " + exp);
+				try {
+					connection.rollback();
+				} catch (SQLException e1) {
+					System.out.println(statusMessage);
+				}
 			} finally {
 				DBConnectionManager.close(connection, preparedStatement, resultSet);
 			}  
 		}
-		return returnMessage;
+		return statusMessage;
 	}
 
 	/**
@@ -254,7 +236,10 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 	 * @param scheduleVo Object contains student details that has to be updated
 	 * @return status message stating success or failure
 	 */
-	public String updateSchedule(ScheduleVO scheduleVo, ScheduleVO newScheduleVO) {
+	public String updateSchedule(ScheduleVO scheduleVO) {
+		PreparedStatement preparedStatement = null;
+		Connection connection = null;
+
 		int scheduleID = 0;
 		String statusMessage = null;
 
@@ -263,17 +248,15 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			connection = DBConnectionManager.getConnection();
 			connection.setAutoCommit(false);
 
-			scheduleID = getScheduleID (connection, scheduleVo);
-
 			//Prepare insert statement to insert schedule details using preparedStatement
 			preparedStatement = connection.prepareStatement(dbQueries.getProperty("update.schedule"));
 
 			int index=0;
 			//set Schedule values
-			preparedStatement.setDate(++index, newScheduleVO.getStartDate());
-			preparedStatement.setDate(++index, newScheduleVO.getEndDate());
-			preparedStatement.setTime(++index, newScheduleVO.getStartTime());
-			preparedStatement.setTime(++index, newScheduleVO.getEndTime());
+			preparedStatement.setDate(++index, scheduleVO.getStartDate());
+			preparedStatement.setDate(++index, scheduleVO.getEndDate());
+			preparedStatement.setTime(++index, scheduleVO.getStartTime());
+			preparedStatement.setTime(++index, scheduleVO.getEndTime());
 			preparedStatement.setInt(++index, scheduleID);
 			System.out.println("Updating Schedule using DDL statement "+preparedStatement.toString());
 
@@ -292,6 +275,7 @@ public class ScheduleDAOImpl implements ScheduleDAO {
 			}
 
 		} catch (Exception e) {
+			statusMessage = Constants.FAILURE;
 			try {
 				connection.rollback();
 			} catch (SQLException e1) {

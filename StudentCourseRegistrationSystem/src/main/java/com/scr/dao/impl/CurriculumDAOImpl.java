@@ -3,6 +3,7 @@ package com.scr.dao.impl;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -171,7 +172,12 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 
 		} catch(Exception exp){
 			statusMessage = Constants.FAILURE;
-			System.out.println("Error : " + exp);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			exp.printStackTrace();
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
@@ -214,7 +220,12 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 
 		} catch(Exception exp){
 			statusMessage = Constants.FAILURE;
-			System.out.println("Error : " + exp);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			exp.printStackTrace();
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
@@ -251,7 +262,12 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 				statusMessage = Constants.SUCCESS;
 		}catch(Exception exp){
 			statusMessage = Constants.FAILURE;
-			System.out.println("Error : " + exp);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			exp.printStackTrace();
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
@@ -292,7 +308,12 @@ public class CurriculumDAOImpl implements CurriculumDAO {
 
 		} catch(Exception exp){
 			statusMessage = Constants.FAILURE;
-			System.out.println("Error : " + exp);
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				System.out.println(statusMessage);
+			}
+			exp.printStackTrace();
 		}finally{
 			DBConnectionManager.close(connection, preparedStatement, null);
 		}
