@@ -67,5 +67,13 @@ public interface ScheduleDAO {
 	 */
 
 	public String addCourseSchedule(int courseId, List<ScheduleVO> scheduleVOs);
+	/**
+	 * Adds the schedule for a course
+	 * @param connection
+	 * @param courseId
+	 * @param courseSchList
+	 * @return boolean
+	 * @throws Exception
+	 */
 
 }
